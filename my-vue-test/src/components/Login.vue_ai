@@ -1,0 +1,67 @@
+<script setup>
+import { ref } from 'vue'
+import api from '../api' // Убедись, что путь к api.js верный
+
+const password = ref('')
+const status = ref('')
+
+const handleLogin = async () => {
+  try {
+    status.value = 'Вход...'
+    
+    // Отправляем POST запрос на Java AuthController
+    const response = await api.post('/java/api/login', { 
+	 username: 'admin', // for now only admin
+	 password: password.value 
+    });
+
+    if (response.data.token) {
+      // Сохраняем JWT в память браузера
+      localStorage.setItem('token', response.data.token);
+      status.value = 'Успешно! Теперь можно идти на главную.';
+      
+      // Можно сделать редирект на главную через секунду
+      setTimeout(() => {
+        window.location.hash = '#/'
+      }, 1000);
+    }
+  } catch (error) {
+    console.error('Ошибка входа:', error);
+    status.value = 'Ошибка: Неверный пароль или сервер недоступен';
+  }
+}
+</script>
+
+<template>
+  <div class="login-container">
+    <h2>Вход в админку</h2>
+    <input 
+      v-model="password" 
+      type="password" 
+      placeholder="Введите пароль" 
+      @keyup.enter="handleLogin"
+    />
+    <button @click="handleLogin">Войти</button>
+    <p v-if="status">{{ status }}</p>
+  </div>
+</template>
+
+<style scoped>
+.login-container {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  max-width: 300px;
+  margin: 20px auto;
+  text-align: center;
+}
+input {
+  width: 90%;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+button {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+</style>

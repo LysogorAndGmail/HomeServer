@@ -1,0 +1,14 @@
+const http = require('http');
+
+const hostname = '0.0.0.0'; // Слушаем все сетевые интерфейсы
+const port = 3000;          // Порт нашего приложения
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end('Alla test! Это мой API на Mac Mini. Node.js работает!\n');
+});
+
+server.listen(port, hostname, () => {
+  console.log(`Сервер запущен! Локально доступен по http://localhost:${port}/`);
+});

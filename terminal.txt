@@ -1,0 +1,33 @@
+# 1. Убиваем старый процесс
+
+pm2 restart home-spring
+pm2 delete home-spring
+sudo fuser -k 80/tcp
+
+# 2. Запускаем на 80 порту
+ pm2 start "java -Dserver.port=8080 -jar /home/lysogorand/my-spring-app/target/demo-0.0.1-SNAPSHOT.jar" --name home-spring
+pm2 start serve --name "vue-frontend" -- -s /home/lysogorand/my-vue-test/dist -l 80
+
+root@lysogorand:/home/lysogorand/my-vue-test# pm2 start "npm run dev -- --host --port 80" --name "vue-watch"
+
+#logi 
+pm2 logs home-spring --lines 20
+
+#curl 
+root@lysogorand:/home/lysogorand# curl -X POST http://84.141.44.207/api/login \ -H "Content-Type: application/json" \ -d '{"username":"admin", "password":"admin123"}' -v
+
+
+1.  **Удаляем старый "битый" процесс из списка:**
+    ```bash
+    pm2 delete home-spring
+    ```
+
+2.  **Запускаем с правильным путем и нужным портом:**
+    ```bash
+    pm2 start "java -Dserver.port=8080 -jar /home/lysogorand/my-spring-app/target/demo-0.0.1-SNAPSHOT.jar" --name home-spring
+    ```
+
+3.  **Сохраняем конфигурацию (чтобы после перезагрузки всё поднялось само):**
+    ```bash
+    pm2 save
+    ```

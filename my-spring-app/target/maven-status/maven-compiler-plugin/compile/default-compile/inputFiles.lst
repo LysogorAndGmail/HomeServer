@@ -1,0 +1,11 @@
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/User.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/UserRepository.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/HelloController.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/DataController.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/AuthController.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/VisitRepository.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/DemoApplication.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/ApiLog.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/JwtUtils.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/ApiLogRepository.java
+/home/lysogorand/my-spring-app/src/main/java/com/example/demo/Visit.java
