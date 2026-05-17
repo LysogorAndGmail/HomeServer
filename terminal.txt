@@ -1,5 +1,7 @@
 # 1. Убиваем старый процесс
 
+mvn clean package -DskipTests
+
 pm2 restart home-spring
 pm2 delete home-spring
 sudo fuser -k 80/tcp
@@ -31,3 +33,10 @@ root@lysogorand:/home/lysogorand# curl -X POST http://84.141.44.207/api/login \ 
     ```bash
     pm2 save
     ```
+
+PS C:\Users\LysogorAnd> curl.exe -v -X POST "http://84.141.44.207:8080/api/audio/stream" -H "Content-Type: application/octet-stream" --data-binary "@test_new.wav"
+
+
+PS C:\Users\LysogorAnd> scp -P 2222 C:\Users\LysogorAnd\record_out.wav lysogorand@84.141.44.207:/tmp
+
+PS C:\Users\LysogorAnd> curl.exe -v -X POST "http://84.141.44.207:8080/api/audio/stream" -H "Content-Type: application/octet-stream" --data-binary "@pure.raw"

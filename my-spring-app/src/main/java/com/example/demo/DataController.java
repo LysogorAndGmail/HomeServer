@@ -1,63 +1,59 @@
 package com.example.demo;
 
-import java.io.InputStream;
-import java.io.IOException;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import java.util.List;
-
-// ДОБАВИТЬ ЭТИ ИМПОРТЫ
 import org.vosk.Model;
 import org.vosk.Recognizer;
-import jakarta.annotation.PostConstruct;
 
-@CrossOrigin(origins = "*")
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*")
 public class DataController {
 
-    // Внедряем репозиторий для работы с базой
     private final ApiLogRepository apiLogRepository;
+    private final Model model;
 
-    // 1. ДОБАВИТЬ ПЕРЕМЕННУЮ МОДЕЛИ
-    private Model voskModel;
-
-    public DataController(ApiLogRepository apiLogRepository) {
+    // Один конструктор для всего
+    public DataController(ApiLogRepository apiLogRepository) throws Exception {
         this.apiLogRepository = apiLogRepository;
+        // Путь к твоей модели на Mac Mini
+        this.model = new Model("/home/lysogorand/my-spring-app/model-ru");
+        System.out.println("VOSK: Модель готова!");
     }
 
-    // 2. ДОБАВИТЬ ЭТОТ МЕТОД (Загрузка модели при старте)
-    @PostConstruct
-    public void initVosk() {
-        try {
-            String modelPath = "/home/lysogorand/my-spring-app/model-ru";
-            this.voskModel = new Model(modelPath);
-            System.out.println("VOSK: Модель успешно загружена из " + modelPath);
+    @PostMapping("audio/stream")
+    public ResponseEntity<String> streamAudio(InputStream inputStream) {
+        try (Recognizer recognizer = new Recognizer(model, 16000f)) {
+
+            byte[] allAudioBytes = inputStream.readAllBytes();
+
+            if (allAudioBytes.length == 0) {
+                return ResponseEntity.badRequest().body("Пустой поток данных");
+            }
+
+            recognizer.acceptWaveForm(allAudioBytes, allAudioBytes.length);
+            String finalJson = recognizer.getFinalResult();
+            System.out.println("РЕЗУЛЬТАТ: " + finalJson);
+
+            // ИСПРАВЛЕНО: вызываем у переменной (apiLogRepository), а не у класса
+            ApiLog log = new ApiLog();
+            log.setProjects("MSI-Final-Check");
+            log.setLogUrl(finalJson);
+            log.setCreatedAt(LocalDateTime.now());
+            apiLogRepository.save(log); 
+
+            return ResponseEntity.ok(finalJson);
+
         } catch (Exception e) {
-            System.err.println("VOSK ERROR: Не удалось загрузить модель! " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Ошибка: " + e.getMessage());
         }
     }
 
-    // Старый тестовый метод
-    @GetMapping("/records")
-    public java.util.Map<String, Object> getProtectedData() {
-        java.util.HashMap<String, Object> data = new java.util.HashMap<>();
-        data.put("status", "success");
-        data.put("message", "Это секретные данные из базы");
-        data.put("records", new String[]{"Record 1", "Record 2", "Record 3"});
-        return data;
-    }
-
-    // НОВЫЙ МЕТОД: Вывод всех логов из базы api_logs
     @GetMapping("/logs")
     public List<ApiLog> getAllLogs() {
         return apiLogRepository.findAll();
@@ -65,47 +61,9 @@ public class DataController {
 
     @PostMapping("/logs")
     public ApiLog createLog(@RequestBody ApiLog newLog) {
-        // Поле id не указываем, благодаря автоинкременту Postgres сам назначит его.
-        // Установим текущее время, если оно не передано с фронтенда
         if (newLog.getCreatedAt() == null) {
-            newLog.setCreatedAt(java.time.LocalDateTime.now());
+            newLog.setCreatedAt(LocalDateTime.now());
         }
         return apiLogRepository.save(newLog);
     }
-
-    @PostMapping(value = "/audio/stream", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<String> handleAudioStream(InputStream inputStream) {
-        System.out.println(">>> Входящий поток получен!");
-        if (voskModel == null) return ResponseEntity.status(500).body("Model null");
-
-        try (Recognizer recognizer = new Recognizer(voskModel, 16000.0f)) {
-            byte[] buffer = new byte[8000];
-            int bytesRead;
-            int totalBytes = 0;
-
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                totalBytes += bytesRead;
-                recognizer.acceptWaveForm(buffer, bytesRead);
-            }
-            System.out.println(">>> Прочитано байт: " + totalBytes);
-            
-            String finalRes = recognizer.getFinalResult();
-            System.out.println(">>> Vosk вернул: " + finalRes);
-            
-            ApiLog log = new ApiLog();
-            log.setProjects("MSI-Debug");
-            log.setLogUrl(finalRes.length() > 255 ? finalRes.substring(0, 250) : finalRes);
-            log.setCreatedAt(java.time.LocalDateTime.now());
-            
-            apiLogRepository.save(log);
-            System.out.println(">>> Запись в БД сохранена!");
-
-            return ResponseEntity.ok(finalRes);
-        } catch (Exception e) {
-            System.out.println(">>> ОШИБКА: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(e.getMessage());
-        }
-    }
 }
-
