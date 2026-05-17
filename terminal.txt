@@ -40,3 +40,11 @@ PS C:\Users\LysogorAnd> curl.exe -v -X POST "http://84.141.44.207:8080/api/audio
 PS C:\Users\LysogorAnd> scp -P 2222 C:\Users\LysogorAnd\record_out.wav lysogorand@84.141.44.207:/tmp
 
 PS C:\Users\LysogorAnd> curl.exe -v -X POST "http://84.141.44.207:8080/api/audio/stream" -H "Content-Type: application/octet-stream" --data-binary "@pure.raw"
+
+
+////////////////
+
+PS C:\Users\LysogorAnd> ffmpeg -f dshow -i audio="Набор микрофонов (Технология Intel® Smart Sound для цифровых микрофонов)" -t 5 -ar 16000 -ac 1 -c:a pcm_s16le -f s16le live_test.raw
+
+
+curl.exe -v -X POST "http://84.141.44.207:8080/api/audio/stream" -H "Content-Type: application/octet-stream" --data-binary "@live_test.raw"
