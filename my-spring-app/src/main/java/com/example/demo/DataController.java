@@ -1,5 +1,10 @@
 package com.example.demo;
 
+import java.io.InputStream;
+import java.io.IOException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import java.util.List;
 
+// ДОБАВИТЬ ЭТИ ИМПОРТЫ
+import org.vosk.Model;
+import org.vosk.Recognizer;
+import jakarta.annotation.PostConstruct;
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api")
@@ -18,8 +28,23 @@ public class DataController {
     // Внедряем репозиторий для работы с базой
     private final ApiLogRepository apiLogRepository;
 
+    // 1. ДОБАВИТЬ ПЕРЕМЕННУЮ МОДЕЛИ
+    private Model voskModel;
+
     public DataController(ApiLogRepository apiLogRepository) {
         this.apiLogRepository = apiLogRepository;
+    }
+
+    // 2. ДОБАВИТЬ ЭТОТ МЕТОД (Загрузка модели при старте)
+    @PostConstruct
+    public void initVosk() {
+        try {
+            String modelPath = "/home/lysogorand/my-spring-app/model-ru";
+            this.voskModel = new Model(modelPath);
+            System.out.println("VOSK: Модель успешно загружена из " + modelPath);
+        } catch (Exception e) {
+            System.err.println("VOSK ERROR: Не удалось загрузить модель! " + e.getMessage());
+        }
     }
 
     // Старый тестовый метод
@@ -48,5 +73,39 @@ public class DataController {
         return apiLogRepository.save(newLog);
     }
 
+    @PostMapping(value = "/audio/stream", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<String> handleAudioStream(InputStream inputStream) {
+        System.out.println(">>> Входящий поток получен!");
+        if (voskModel == null) return ResponseEntity.status(500).body("Model null");
+
+        try (Recognizer recognizer = new Recognizer(voskModel, 16000.0f)) {
+            byte[] buffer = new byte[8000];
+            int bytesRead;
+            int totalBytes = 0;
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                totalBytes += bytesRead;
+                recognizer.acceptWaveForm(buffer, bytesRead);
+            }
+            System.out.println(">>> Прочитано байт: " + totalBytes);
+            
+            String finalRes = recognizer.getFinalResult();
+            System.out.println(">>> Vosk вернул: " + finalRes);
+            
+            ApiLog log = new ApiLog();
+            log.setProjects("MSI-Debug");
+            log.setLogUrl(finalRes.length() > 255 ? finalRes.substring(0, 250) : finalRes);
+            log.setCreatedAt(java.time.LocalDateTime.now());
+            
+            apiLogRepository.save(log);
+            System.out.println(">>> Запись в БД сохранена!");
+
+            return ResponseEntity.ok(finalRes);
+        } catch (Exception e) {
+            System.out.println(">>> ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(e.getMessage());
+        }
+    }
 }
 
