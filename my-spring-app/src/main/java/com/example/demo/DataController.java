@@ -66,4 +66,13 @@ public class DataController {
         }
         return apiLogRepository.save(newLog);
     }
+
+    @GetMapping("/records")
+    public java.util.Map<String, Object> getProtectedData() {
+        java.util.HashMap<String, Object> data = new java.util.HashMap<>();
+        data.put("status", "success");
+        data.put("message", "Это секретные данные из базы");
+        data.put("records", new String[]{"Record 1", "Record 2", "Record 3"});
+        return data;
+    }
 }

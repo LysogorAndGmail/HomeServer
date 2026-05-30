@@ -1,13 +1,15 @@
 import axios from 'axios';
 
+// Берем IP того сервера, с которого загрузился фронтенд
+const currentHost = window.location.hostname;
+
 const api = axios.create({
-  // Обязательно полный путь к бэкенду
-  baseURL: 'http://84.141.44.207:8080', 
+  baseURL: `http://${currentHost}:8080`,
 });
 
-// Этот перехватчик вешает токен на каждый запрос
+// Настраиваем интерцептор (ТОЛЬКО ОДИН РАЗ И ДО ЭКСПОРТА)
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token'); // Тот самый ключ из Login.vue
+  const token = localStorage.getItem('token'); 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -16,4 +18,5 @@ api.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
+// Экспортируем ОДИН РАЗ в самом конце
 export default api;

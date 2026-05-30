@@ -2,6 +2,9 @@
 
 mvn clean package -DskipTests
 
+root@lysogorand:/home/lysogorand/my-spring-app# mvn clean package -DskipTests // glavnoe dlia preresboke
+
+
 pm2 restart home-spring
 pm2 delete home-spring
 sudo fuser -k 80/tcp
