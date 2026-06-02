@@ -97,6 +97,9 @@ onMounted(() => {
           <button type="button" class="btn btn-sm btn-outline-secondary" @click="loadApiLogs">
             Обновить таблицу
           </button>
+          <button type="button" class="btn btn-sm ms-2 btn-outline-danger" @click="loadApiLogs">
+            Send request to ESP 32
+          </button>
         </div>
       </div>
 
