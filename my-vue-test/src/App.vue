@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import routes from '@/routes/route' // Теперь это сработает
+//import routes from '@/routers/route' // Теперь это сработает
 
 const currentPath = ref(window.location.hash)
 
@@ -39,20 +39,14 @@ const logout = () => {
 </script>
 
 <template>
-    <!--<span v-if="currentPath !== '#/login'">
-      <strong>Панель управления</strong> | 
-      <a href="#/">Главная</a> | 
-      <button @click="logout" style="cursor:pointer">Выйти</button>
-    </span>
-    <span v-else>
-      <strong>Пожалуйста, авторизуйтесь</strong>
-    </span>
+  <div>
+<!--    <nav>
+      <router-link to="/">Admin</router-link> | 
+      <router-link to="/login">Login</router-link>
+    </nav>
 
-  <div style="margin-top: 20px;">
-    <p>Статус API: <strong>{{ recordsText }}</strong></p>
+    <hr>-->
+
+    <router-view />
   </div>
-  
-  <hr>-->
-
-  <component :is="currentView" />
 </template>

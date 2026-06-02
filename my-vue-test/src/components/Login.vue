@@ -109,7 +109,7 @@ onMounted(async () => {
       </div>
       <button class="w-100 btn btn-lg btn-primary" @click="handleLogin" type="submit">Sign in</button>
       <span class="d-block mb-2 pb-2"></span>
-      <button class="btn btn-sm btn-danger" @click="updateIP" type="submit">Update IP</button>
+      <!-- <button class="btn btn-sm btn-danger" @click="updateIP" type="submit">Update IP</button>-->
       
 <div class="bd-example-snippet bd-code-snippet mt-3" bis_skin_checked="1"> <div class="bd-example m-0 border-0" bis_skin_checked="1"> <table class="table table-dark table-striped-columns">
   <thead>

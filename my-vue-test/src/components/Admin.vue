@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router' // 1. Импортируем хук роутера
 import api from '@/api'
 import AdminLayout from './AdminLayout.vue' // Импортируем наш новый шаблон
 
+const router = useRouter() // 2. Инициализируем роутер внутри setup
 const recordsText = ref('Загрузка...')
 const status = ref('')
 
@@ -12,12 +14,6 @@ const isLogsLoading = ref(true)
 const formProject = ref('')
 const formUrl = ref('')
 const isSubmitting = ref(false)
-
-// Метод для выхода
-const logout = () => {
-  localStorage.removeItem('token');
-  window.location.hash = '#/login';
-};
 
 const getJavaData = async () => {
   try {
@@ -87,7 +83,6 @@ onMounted(() => {
 
 <template>
   <!-- Оборачиваем всю страницу в шаблон структуры -->
-  <AdminLayout :onLogout="logout">
     
     <!-- Передаем контент дашборда внутрь слота -->
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
@@ -163,5 +158,4 @@ onMounted(() => {
       </div>
     </main>
 
-  </AdminLayout>
 </template>

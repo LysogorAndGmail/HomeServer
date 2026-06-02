@@ -1,31 +1,28 @@
 <script setup>
 import { onMounted } from 'vue'
 import '../../public/dashboard/dashboard.css'
+import { useRouter } from 'vue-router' // 1. Импортируем роутер
 import Header from './Header.vue'
 import Sidebar from './Sidebar.vue'
 
-// Принимаем метод логаута как пропсы, чтобы передать его в Header
-defineProps({
-  onLogout: {
-    type: Function,
-    required: true
-  }
-})
+const router = useRouter() // 2. Инициализируем его
+
+// 3. Функция логаута теперь живёт прямо здесь!
+const handleHeaderLogout = () => {
+  localStorage.removeItem('token') // Удаляем токен
+  router.push('/login')            // Редиректим на логин
+}
 </script>
 
 <template>
-  <!-- 1. Шапка (Header) -->
-  <Header @onLogout="onLogout" />
+  <Header @onLogout="handleHeaderLogout" />
 
-  <!-- 2. Общая структура разметки -->
   <div class="container-fluid">
     <div class="row">
-      
-      <!-- Боковое меню (Sidebar) -->
-       <Sidebar />
 
-      <!-- ТЕГ <slot />: Сюда Vue автоматически подставит контент из Admin.vue -->
-      <slot />
+      <Sidebar />
+
+      <router-view />
 
     </div>
   </div>
