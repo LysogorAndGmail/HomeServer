@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router' // 1. Импортируем хук роутера
 import api from '@/api'
+import axios from 'axios' // Импортируем чистый axios для прямых запросов к ESP32
 import AdminLayout from './AdminLayout.vue' // Импортируем наш новый шаблон
+
 
 const router = useRouter() // 2. Инициализируем роутер внутри setup
 const recordsText = ref('Загрузка...')
@@ -15,6 +17,9 @@ const formProject = ref('')
 const formUrl = ref('')
 const isSubmitting = ref(false)
 
+// Адрес нашей ESP32-S3 в основной сети
+const espIp = 'http://192.168.2.101'
+
 const getJavaData = async () => {
   try {
     const response = await api.get('/api/hello');
@@ -22,7 +27,7 @@ const getJavaData = async () => {
   } catch (e) {
     recordsText.value = 'Ошибка авторизации или сервера';
   }
-};
+}
 
 const loadData = async () => {
   try {
@@ -74,6 +79,31 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString('ru-RU');
 }
 
+// Включение светодиода на ESP32
+const mrijaOn = async () => {
+  try {
+    // Шлём запрос на свой бэкенд, а не на плату напрямую
+    const response = await api.post('/api/mrija/on');
+    recordsText.value = `Mrija Ответ: ${response.data}`;
+  } catch (e) {
+    recordsText.value = 'Ошибка бэкенда при включении Mrija';
+  }
+};
+
+// Выключение светодиода на ESP32 (Добавили недостающую функцию)
+// Выключение светодиода на ESP32 (ИСПРАВЛЕНО)
+const mrijaOff = async () => {
+  try {
+    recordsText.value = 'Отправка команды на стоп...';
+    // Теперь шлем строго на Java бэкенд, без прямых IP платы!
+    const response = await api.post('/api/mrija/off'); 
+    recordsText.value = `Mrija Ответ: ${response.data}`;
+  } catch (e) {
+    recordsText.value = 'Ошибка бэкенда при выключении Mrija';
+    console.error(e);
+  }
+};
+
 onMounted(() => {
   //getJavaData(); for now 
   loadData();
@@ -92,8 +122,11 @@ onMounted(() => {
           <button type="button" class="btn btn-sm btn-outline-secondary" @click="loadApiLogs">
             Обновить таблицу
           </button>
-          <button type="button" class="btn btn-sm ms-2 btn-outline-danger" @click="loadApiLogs">
-            Send request to ESP 32
+          <button type="button" class="btn btn-sm ms-2 btn-success" @click="mrijaOn">
+            Mrija Start 🚀
+          </button>
+          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="mrijaOff">
+            Mrija Stop 🛑
           </button>
         </div>
       </div>

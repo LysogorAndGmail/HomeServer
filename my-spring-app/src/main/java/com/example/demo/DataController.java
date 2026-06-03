@@ -2,8 +2,14 @@ package com.example.demo;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate; // ВОТ ЭТОТ ИМПОРТ МЫ ДОБАВИЛИ!
 import org.vosk.Model;
 import org.vosk.Recognizer;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -74,5 +80,72 @@ public class DataController {
         data.put("message", "Это секретные данные из базы");
         data.put("records", new String[]{"Record 1", "Record 2", "Record 3"});
         return data;
+    }
+
+    // --- УПРАВЛЕНИЕ ПЛАТОЙ MRIJA ЧЕРЕЗ БЭКЕНД ---
+
+    @PostMapping("/mrija/on")
+    public ResponseEntity<String> turnOnMrija() {
+        String espUrl = "http://192.168.2.101/led/on";
+        try {
+            System.out.println("Java: Отправка команды ON на ESP32...");
+            URL url = new URL(espUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(3000); // 3 секунды таймаут
+            connection.setReadTimeout(3000);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+                return ResponseEntity.ok(response.toString());
+            } else {
+                System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
+                return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+            }
+        } catch (Exception e) {
+            System.out.println("Java ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/mrija/off")
+    public ResponseEntity<String> turnOffMrija() {
+        String espUrl = "http://192.168.2.101/led/off";
+        try {
+            System.out.println("Java: Отправка команды OFF на ESP32...");
+            URL url = new URL(espUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+                return ResponseEntity.ok(response.toString());
+            } else {
+                return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+            }
+        } catch (Exception e) {
+            System.out.println("Java ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+        }
     }
 }

@@ -51,3 +51,7 @@ PS C:\Users\LysogorAnd> ffmpeg -f dshow -i audio="Набор микрофоно�
 
 
 curl.exe -v -X POST "http://84.141.44.207:8080/api/audio/stream" -H "Content-Type: application/octet-stream" --data-binary "@live_test.raw"
+
+curl -G 'http://localhost:8080/api/agent/chat' \
+  --data-urlencode "id=perfect-test" \
+  --data-urlencode "msg=Какая обстановка на диске?"

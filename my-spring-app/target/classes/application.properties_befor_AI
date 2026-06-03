@@ -1,0 +1,7 @@
+spring.application.name=demo
+spring.datasource.url=jdbc:postgresql://localhost:5432/home_projects
+spring.datasource.username=dev_user
+spring.datasource.password=Kira14052010
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
