@@ -1,3 +1,12 @@
+
+spring.application.name=demo
+spring.datasource.url=jdbc:postgresql://localhost:5432/home_projects
+spring.datasource.username=dev_user
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
 # 1. Убиваем старый процесс
 
 mvn clean package -DskipTests
@@ -55,3 +64,9 @@ curl.exe -v -X POST "http://84.141.44.207:8080/api/audio/stream" -H "Content-Typ
 curl -G 'http://localhost:8080/api/agent/chat' \
   --data-urlencode "id=perfect-test" \
   --data-urlencode "msg=Какая обстановка на диске?"
+
+psql -U dev_user -d home_projects -h localhost -c "SELECT user_message, ai_response FROM ai_logs ORDER BY id DESC LIMIT 1;"
+
+curl -G 'http://localhost:8080/api/agent/chat' \
+  --data-urlencode "id=clean-brain" \
+  --data-urlencode "msg=Привет! Как тебя зовут и какая у тебя структура?"
