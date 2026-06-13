@@ -70,3 +70,7 @@ psql -U dev_user -d home_projects -h localhost -c "SELECT user_message, ai_respo
 curl -G 'http://localhost:8080/api/agent/chat' \
   --data-urlencode "id=clean-brain" \
   --data-urlencode "msg=Привет! Как тебя зовут и какая у тебя структура?"
+
+////////////////////////////// final usb mic ///////////////////////////
+root@lysogorand:/home/lysogorand/my-spring-app# ffmpeg -y -f alsa -channels 1 -sample_rate 44100 -i hw:2,0 -t 4 -ar 16000 -f s16le /tmp/voice.raw && curl -s -H "Content-Type: application/octet-stream" --data-binary "@/tmp/voice.raw" "http://localhost:8080/api/audio/stream"
+
