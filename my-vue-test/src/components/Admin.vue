@@ -22,6 +22,9 @@ const espIp = 'http://192.168.2.101'
 
 const ozvuchka = ref(1)
 
+const chastota = ref(1)
+const interval = ref(1)
+
 const getJavaData = async () => {
   try {
     const response = await api.get('/api/hello');
@@ -245,7 +248,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Mrija</h1>
+        <h1 class="h2">Mrija Radio</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <label for="customRange3" class="form-label">Gromkost: {{ radioVolume }}</label>
           <input
@@ -264,6 +267,32 @@ onMounted(() => {
           <button type="button" class="btn btn-sm ms-2 btn-info" @click="RadioOff">
             Stop radio 🛑
           </button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Mrija Ogni</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <label for="customRange4" class="form-label">Chastota miganija: {{ chastota }}</label>
+          <input
+              v-model.number="chastota"
+              type="range"
+              class="form-range chastota"
+              min="1"
+              max="100"
+              step="1"
+              id="customRange4"
+          >
+          <label for="customRange5" class="form-label">Interval miganija: {{ interval }}</label>
+          <input
+              v-model.number="interval"
+              type="range"
+              class="form-range interval"
+              min="1"
+              max="100"
+              step="1"
+              id="customRange5"
+          >
           <button type="button" class="btn btn-sm ms-2 btn-success" @click="BlickOn">
             Start Blick 🚀
           </button>
