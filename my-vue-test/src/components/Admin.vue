@@ -80,10 +80,10 @@ const formatDate = (dateString) => {
 }
 
 // Включение светодиода на ESP32
-const mrijaOn = async () => {
+const BlickOn = async () => {
   try {
     // Шлём запрос на свой бэкенд, а не на плату напрямую
-    const response = await api.post('/api/mrija/on');
+    const response = await api.post('/api/mrija/blickOn');
     recordsText.value = `Mrija Ответ: ${response.data}`;
   } catch (e) {
     recordsText.value = 'Ошибка бэкенда при включении Mrija';
@@ -92,11 +92,36 @@ const mrijaOn = async () => {
 
 // Выключение светодиода на ESP32 (Добавили недостающую функцию)
 // Выключение светодиода на ESP32 (ИСПРАВЛЕНО)
-const mrijaOff = async () => {
+const BlickOff = async () => {
   try {
     recordsText.value = 'Отправка команды на стоп...';
     // Теперь шлем строго на Java бэкенд, без прямых IP платы!
-    const response = await api.post('/api/mrija/off'); 
+    const response = await api.post('/api/mrija/blickOff');
+    recordsText.value = `Mrija Ответ: ${response.data}`;
+  } catch (e) {
+    recordsText.value = 'Ошибка бэкенда при выключении Mrija';
+    console.error(e);
+  }
+};
+
+// Включение светодиода на ESP32
+const RadioOn = async () => {
+  try {
+    // Шлём запрос на свой бэкенд, а не на плату напрямую
+    const response = await api.post('/api/mrija/radioOn');
+    recordsText.value = `Mrija Ответ: ${response.data}`;
+  } catch (e) {
+    recordsText.value = 'Ошибка бэкенда при включении Mrija';
+  }
+};
+
+// Выключение светодиода на ESP32 (Добавили недостающую функцию)
+// Выключение светодиода на ESP32 (ИСПРАВЛЕНО)
+const RadioOff = async () => {
+  try {
+    recordsText.value = 'Отправка команды на стоп...';
+    // Теперь шлем строго на Java бэкенд, без прямых IP платы!
+    const response = await api.post('/api/mrija/radioOff');
     recordsText.value = `Mrija Ответ: ${response.data}`;
   } catch (e) {
     recordsText.value = 'Ошибка бэкенда при выключении Mrija';
@@ -194,16 +219,16 @@ onMounted(() => {
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Mrija</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
-          <button type="button" class="btn btn-sm ms-2 btn-success" @click="RadioOn">
+          <button type="button" class="btn btn-sm ms-2 btn-default" @click="RadioOn">
             Start radio 🚀
           </button>
           <button type="button" class="btn btn-sm ms-2 btn-danger" @click="RadioOff">
             Stop radio 🛑
           </button>
-          <button type="button" class="btn btn-sm ms-2 btn-success" @click="blickOn">
+          <button type="button" class="btn btn-sm ms-2 btn-success" @click="BlickOn">
             Start Blick 🚀
           </button>
-          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="blickOff">
+          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="BlickOff">
             Stop Blick 🛑
           </button>
         </div>
