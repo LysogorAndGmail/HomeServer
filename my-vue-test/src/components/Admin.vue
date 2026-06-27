@@ -189,11 +189,17 @@ onMounted(() => {
           <button type="button" class="btn btn-sm btn-outline-secondary" @click="loadApiLogs">
             Обновить таблицу
           </button>
+          <button type="button" class="btn btn-sm ms-2 btn-success" @click="mrijaRadioOn">
+            Mrija Start radio 🚀
+          </button>
+          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="mrijaRadioOff">
+            Mrija Stop radio 🛑
+          </button>
           <button type="button" class="btn btn-sm ms-2 btn-success" @click="mrijaOn">
-            Mrija Start 🚀
+            Mrija Start Blick 🚀
           </button>
           <button type="button" class="btn btn-sm ms-2 btn-danger" @click="mrijaOff">
-            Mrija Stop 🛑
+            Mrija Stop Blick 🛑
           </button>
         </div>
       </div>
