@@ -219,10 +219,10 @@ onMounted(() => {
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Mrija</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
-          <button type="button" class="btn btn-sm ms-2 btn-default" @click="RadioOn">
+          <button type="button" class="btn btn-sm ms-2 btn-primary" @click="RadioOn">
             Start radio 🚀
           </button>
-          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="RadioOff">
+          <button type="button" class="btn btn-sm ms-2 btn-info" @click="RadioOff">
             Stop radio 🛑
           </button>
           <button type="button" class="btn btn-sm ms-2 btn-success" @click="BlickOn">
