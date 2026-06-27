@@ -219,6 +219,8 @@ onMounted(() => {
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Mrija</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
+          <label for="customRange3" class="form-label">Gromkost</label>
+          <input type="range" class="form-range" min="0" max="24" step="4" id="customRange3">
           <button type="button" class="btn btn-sm ms-2 btn-primary" @click="RadioOn">
             Start radio 🚀
           </button>
