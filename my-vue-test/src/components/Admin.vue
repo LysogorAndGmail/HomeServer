@@ -20,6 +20,8 @@ const isSubmitting = ref(false)
 // Адрес нашей ESP32-S3 в основной сети
 const espIp = 'http://192.168.2.101'
 
+const ozvuchka = ref(1)
+
 const getJavaData = async () => {
   try {
     const response = await api.get('/api/hello');
@@ -113,7 +115,25 @@ const RadioOn = async () => {
     // Передаем громкость в params, axios сам превратит это в /api/mrija/radioOn?volume=12
     const response = await api.post('/api/mrija/radioOn', null, {
       params: {
-        volume: radioVolume.value
+        volume: radioVolume.value,
+        ozvuchka: ozvuchka
+      }
+    });
+    recordsText.value = `Mrija Ответ: ${response.data}`;
+  } catch (e) {
+    recordsText.value = 'Ошибка бэкенда при включении Mrija';
+  }
+};
+
+// 2. Обновляем функцию включения радио
+const RadioOnVolume = async () => {
+  ozvuchka.value = 0;
+  try {
+    // Передаем громкость в params, axios сам превратит это в /api/mrija/radioOn?volume=12
+    const response = await api.post('/api/mrija/radioOn', null, {
+      params: {
+        volume: radioVolume.value,
+        ozvuchka: ozvuchka
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
@@ -229,7 +249,7 @@ onMounted(() => {
           <label for="customRange3" class="form-label">Gromkost: {{ radioVolume }}</label>
           <input
               v-model.number="radioVolume"
-              @change="RadioOn"
+              @change="RadioOnVolume"
               type="range"
               class="form-range radio_value"
               min="0"
