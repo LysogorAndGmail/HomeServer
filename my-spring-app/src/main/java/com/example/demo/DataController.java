@@ -173,6 +173,13 @@ public class DataController {
                 }
                 in.close();
                 System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+
+                // =========================================================================
+                // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
+                // =========================================================================
+                voiceOutputService.speak("Blick отключен");
+                // =========================================================================
+
                 return ResponseEntity.ok(response.toString());
             } else {
                 return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
