@@ -237,7 +237,6 @@ onMounted(() => {
               step="3"
               id="customRange3"
           >
-          <p>&nbsp;</p>
           <button type="button" class="btn btn-sm ms-2 btn-primary" @click="RadioOn">
             Start radio 🚀
           </button>
@@ -562,5 +561,9 @@ h2 {
   text-align: center;
   color: #868e96;
   padding: 40px 0;
+}
+
+.radio_value {
+  margin-bottom: 17px;
 }
 </style>
