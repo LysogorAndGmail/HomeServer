@@ -196,7 +196,7 @@ public class DataController {
     @PostMapping("/mrija/radioOn")
     public ResponseEntity<String> turnOnMrijaRadio(
 
-        @RequestParam(value = "volume", required = false) Integer volume
+        @RequestParam(value = "volume", required = false) Integer volume,
         @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
 
         ) {
