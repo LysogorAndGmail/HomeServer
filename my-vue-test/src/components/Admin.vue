@@ -111,6 +111,7 @@ const radioVolume = ref(12)
 
 // 2. Обновляем функцию включения радио
 const RadioOn = async () => {
+  ozvuchka.value = 1;
   try {
     // Передаем громкость в params, axios сам превратит это в /api/mrija/radioOn?volume=12
     const response = await api.post('/api/mrija/radioOn', null, {
