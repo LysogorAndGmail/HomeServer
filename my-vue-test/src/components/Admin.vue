@@ -189,17 +189,22 @@ onMounted(() => {
           <button type="button" class="btn btn-sm btn-outline-secondary" @click="loadApiLogs">
             Обновить таблицу
           </button>
-          <button type="button" class="btn btn-sm ms-2 btn-success" @click="mrijaRadioOn">
-            Mrija Start radio 🚀
+        </div>
+      </div>
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Mrija</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <button type="button" class="btn btn-sm ms-2 btn-success" @click="RadioOn">
+            Start radio 🚀
           </button>
-          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="mrijaRadioOff">
-            Mrija Stop radio 🛑
+          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="RadioOff">
+            Stop radio 🛑
           </button>
-          <button type="button" class="btn btn-sm ms-2 btn-success" @click="mrijaOn">
-            Mrija Start Blick 🚀
+          <button type="button" class="btn btn-sm ms-2 btn-success" @click="blickOn">
+            Start Blick 🚀
           </button>
-          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="mrijaOff">
-            Mrija Stop Blick 🛑
+          <button type="button" class="btn btn-sm ms-2 btn-danger" @click="blickOff">
+            Stop Blick 🛑
           </button>
         </div>
       </div>
