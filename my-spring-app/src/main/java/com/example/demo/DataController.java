@@ -194,7 +194,12 @@ public class DataController {
     }
 
     @PostMapping("/mrija/radioOn")
-    public ResponseEntity<String> turnOnMrijaRadio(@RequestParam(value = "volume", required = false) Integer volume) {
+    public ResponseEntity<String> turnOnMrijaRadio(
+
+        @RequestParam(value = "volume", required = false) Integer volume
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+
+        ) {
         // Базовый URL
         String espUrl = "http://192.168.2.101/radio/on";
 
@@ -226,8 +231,9 @@ public class DataController {
 
                 System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
 
-                // Озвучка при успешном старте
-                voiceOutputService.speak("Радио включено");
+                if (ozvuchka != null && ozvuchka == 1) {
+                    voiceOutputService.speak("Радио включено");
+                }
 
                 return ResponseEntity.ok(response.toString());
             } else {
