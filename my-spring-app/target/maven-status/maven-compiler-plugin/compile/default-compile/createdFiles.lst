@@ -1,9 +1,14 @@
 com/example/demo/UserRepository.class
+com/example/demo/VoiceOutputService.class
 com/example/demo/AiAgentController.class
+com/example/demo/AiLogRepository.class
 com/example/demo/AuthController.class
+com/example/demo/AiLog.class
+com/example/demo/AiLogService.class
 com/example/demo/VisitRepository.class
 com/example/demo/HelloController.class
 com/example/demo/DemoApplication.class
+com/example/demo/AudioRecognitionService.class
 com/example/demo/DiskSpaceService$Response.class
 com/example/demo/ApiLogRepository.class
 com/example/demo/ApiLog.class
