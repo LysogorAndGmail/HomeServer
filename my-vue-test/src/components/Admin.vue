@@ -224,7 +224,9 @@ const BlickOn = async () => {
     // Шлём запрос на свой бэкенд, а не на плату напрямую
     const response = await api.post('/api/mrija/blickOn', null, {
       params: {
-        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0,
+        chastota: chastota.value,
+        interval: interval.value
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
