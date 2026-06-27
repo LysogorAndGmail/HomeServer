@@ -22,8 +22,8 @@ const espIp = 'http://192.168.2.101'
 
 const isOzvuchkaEnabled = ref(true)
 
-const chastota = ref(1)
-const interval = ref(1)
+const chastota = ref(11)
+const interval = ref(32)
 
 const getJavaData = async () => {
   try {
@@ -303,6 +303,7 @@ onMounted(() => {
               step="1"
               id="customRange4"
           >
+
           <label for="customRange5" class="form-label">Interval miganija: {{ interval }}</label>
           <input
               v-model.number="interval"
