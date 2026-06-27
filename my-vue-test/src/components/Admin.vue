@@ -105,10 +105,17 @@ const BlickOff = async () => {
 };
 
 // Включение светодиода на ESP32
+const radioVolume = ref(12)
+
+// 2. Обновляем функцию включения радио
 const RadioOn = async () => {
   try {
-    // Шлём запрос на свой бэкенд, а не на плату напрямую
-    const response = await api.post('/api/mrija/radioOn');
+    // Передаем громкость в params, axios сам превратит это в /api/mrija/radioOn?volume=12
+    const response = await api.post('/api/mrija/radioOn', null, {
+      params: {
+        volume: radioVolume.value
+      }
+    });
     recordsText.value = `Mrija Ответ: ${response.data}`;
   } catch (e) {
     recordsText.value = 'Ошибка бэкенда при включении Mrija';
@@ -219,8 +226,16 @@ onMounted(() => {
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Mrija</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
-          <label for="customRange3" class="form-label">Gromkost</label>
-          <input type="range" class="form-range" value="12" min="0" max="24" step="4" id="customRange3">
+          <label for="customRange3" class="form-label">Gromkost: {{ radioVolume }}</label>
+          <input
+              v-model.number="radioVolume"
+              type="range"
+              class="form-range radio_value"
+              min="0"
+              max="21"
+              step="3"
+              id="customRange3"
+          >
           <button type="button" class="btn btn-sm ms-2 btn-primary" @click="RadioOn">
             Start radio 🚀
           </button>

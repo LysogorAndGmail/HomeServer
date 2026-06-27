@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api")
@@ -192,12 +194,22 @@ public class DataController {
     }
 
     @PostMapping("/mrija/radioOn")
-    public ResponseEntity<String> turnOnMrijaRadio() {
+    public ResponseEntity<String> turnOnMrijaRadio(@RequestParam(value = "volume", required = false) Integer volume) {
+        // Базовый URL
         String espUrl = "http://192.168.2.101/radio/on";
+
+        // Если параметр volume пришел от Vue, приклеиваем его к URL запроса
+        if (volume != null) {
+            espUrl += "?volume=" + volume;
+            System.out.println("Java: Получен параметр громкости: " + volume);
+        }
+
         try {
-            System.out.println("Java: Отправка команды ON на ESP32...");
+            System.out.println("Java: Отправка команды ON на ESP32 по адресу: " + espUrl);
             URL url = new URL(espUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // Так как на ESP32 настроен эндпоинт HTTP_ANY, метод POST сработает идеально
             connection.setRequestMethod("POST");
             connection.setConnectTimeout(3000); // 3 секунды таймаут
             connection.setReadTimeout(3000);
@@ -214,28 +226,19 @@ public class DataController {
 
                 System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
 
-                // =========================================================================
-                // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
-                // =========================================================================
+                // Озвучка при успешном старте
                 voiceOutputService.speak("Радио включено");
-                // =========================================================================
 
                 return ResponseEntity.ok(response.toString());
             } else {
                 System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
-
-                // Опционально: можно озвучить и ошибку, если плата недоступна
                 voiceOutputService.speak("Ошибка старта. Мрия не отвечает.");
-
                 return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
             }
         } catch (Exception e) {
             System.out.println("Java ОШИБКА: " + e.getMessage());
             e.printStackTrace();
-
-            // Озвучка на случай, если вообще упала сеть до ESP32
             voiceOutputService.speak("Сбой сети. Самолёт не запущен.");
-
             return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
         }
     }
