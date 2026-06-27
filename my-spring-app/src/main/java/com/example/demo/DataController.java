@@ -106,7 +106,9 @@ public class DataController {
     // --- УПРАВЛЕНИЕ ПЛАТОЙ MRIJA ЧЕРЕЗ БЭКЕНД ---
 
     @PostMapping("/mrija/blickOn")
-    public ResponseEntity<String> turnOnMrija() {
+    public ResponseEntity<String> turnOnMrija(
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+    ) {
         String espUrl = "http://192.168.2.101/led/on";
         try {
             System.out.println("Java: Отправка команды ON на ESP32...");
@@ -131,7 +133,9 @@ public class DataController {
                 // =========================================================================
                 // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
                 // =========================================================================
-                voiceOutputService.speak("Самолёт Мрия стартовал");
+                if (ozvuchka != null && ozvuchka == 1) {
+                    voiceOutputService.speak("Самолёт Мрия стартовал");
+                }
                 // =========================================================================
 
                 return ResponseEntity.ok(response.toString());
@@ -155,7 +159,9 @@ public class DataController {
     }
 
     @PostMapping("/mrija/blickOff")
-    public ResponseEntity<String> turnOffMrija() {
+    public ResponseEntity<String> turnOffMrija(
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+        ) {
         String espUrl = "http://192.168.2.101/led/off";
         try {
             System.out.println("Java: Отправка команды OFF на ESP32...");
@@ -179,7 +185,9 @@ public class DataController {
                 // =========================================================================
                 // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
                 // =========================================================================
-                voiceOutputService.speak("Самолет завершил полёт");
+                if (ozvuchka != null && ozvuchka == 1) {
+                    voiceOutputService.speak("Самолет завершил полёт");
+                }
                 // =========================================================================
 
                 return ResponseEntity.ok(response.toString());
@@ -250,7 +258,11 @@ public class DataController {
     }
 
     @PostMapping("/mrija/radioOff")
-    public ResponseEntity<String> turnOffMrijaRadio() {
+    public ResponseEntity<String> turnOffMrijaRadio(
+
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+
+    ) {
         String espUrl = "http://192.168.2.101/radio/off";
         try {
             System.out.println("Java: Отправка команды OFF на ESP32...");
@@ -274,7 +286,9 @@ public class DataController {
                 // =========================================================================
                 // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
                 // =========================================================================
-                voiceOutputService.speak("Радио выключено");
+                if (ozvuchka != null && ozvuchka == 1) {
+                    voiceOutputService.speak("Радио выключено");
+                }
                 // =========================================================================
 
                 return ResponseEntity.ok(response.toString());

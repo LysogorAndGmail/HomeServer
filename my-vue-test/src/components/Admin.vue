@@ -90,7 +90,11 @@ const BlickOff = async () => {
   try {
     recordsText.value = 'Отправка команды на стоп...';
     // Теперь шлем строго на Java бэкенд, без прямых IP платы!
-    const response = await api.post('/api/mrija/blickOff');
+    const response = await api.post('/api/mrija/blickOff', null, {
+      params: {
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
+      }
+    });
     recordsText.value = `Mrija Ответ: ${response.data}`;
   } catch (e) {
     recordsText.value = 'Ошибка бэкенда при выключении Mrija';
@@ -108,7 +112,7 @@ const RadioOn = async () => {
     const response = await api.post('/api/mrija/radioOn', null, {
       params: {
         volume: radioVolume.value,
-        ozvuchka: 1
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
@@ -139,7 +143,11 @@ const RadioOff = async () => {
   try {
     recordsText.value = 'Отправка команды на стоп...';
     // Теперь шлем строго на Java бэкенд, без прямых IP платы!
-    const response = await api.post('/api/mrija/radioOff');
+    const response = await api.post('/api/mrija/radioOff', null, {
+      params: {
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
+      }
+    });
     recordsText.value = `Mrija Ответ: ${response.data}`;
   } catch (e) {
     recordsText.value = 'Ошибка бэкенда при выключении Mrija';
@@ -214,7 +222,11 @@ const formatTime = (isoString) => {
 const BlickOn = async () => {
   try {
     // Шлём запрос на свой бэкенд, а не на плату напрямую
-    const response = await api.post('/api/mrija/blickOn');
+    const response = await api.post('/api/mrija/blickOn', null, {
+      params: {
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
+      }
+    });
     recordsText.value = `Mrija Ответ: ${response.data}`;
   } catch (e) {
     recordsText.value = 'Ошибка бэкенда при включении Mrija';
