@@ -107,15 +107,24 @@ public class DataController {
 
     @PostMapping("/mrija/blickOn")
     public ResponseEntity<String> turnOnMrija(
-        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka,
+        @RequestParam(value = "chastota", required = false) Integer chastota,
+        @RequestParam(value = "interval", required = false) Integer interval
     ) {
         String espUrl = "http://192.168.2.101/led/on";
+
+        // Формируем query-параметры для ESP32
+        if (chastota != null && interval != null) {
+            espUrl += "?chastota=" + chastota + "&interval=" + interval;
+            System.out.println("Java: Получены параметры огней -> chastota: " + chastota + ", interval: " + interval);
+        }
+
         try {
-            System.out.println("Java: Отправка команды ON на ESP32...");
+            System.out.println("Java: Отправка команды ON на ESP32 по адресу: " + espUrl);
             URL url = new URL(espUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
-            connection.setConnectTimeout(3000); // 3 секунды таймаут
+            connection.setConnectTimeout(3000);
             connection.setReadTimeout(3000);
 
             int responseCode = connection.getResponseCode();
@@ -130,30 +139,21 @@ public class DataController {
 
                 System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
 
-                // =========================================================================
-                // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
-                // =========================================================================
+                // Безопасная проверка озвучки
                 if (ozvuchka != null && ozvuchka == 1) {
                     voiceOutputService.speak("Самолёт Мрия стартовал");
                 }
-                // =========================================================================
 
                 return ResponseEntity.ok(response.toString());
             } else {
                 System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
-
-                // Опционально: можно озвучить и ошибку, если плата недоступна
                 voiceOutputService.speak("Ошибка старта. Мрия не отвечает.");
-
                 return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
             }
         } catch (Exception e) {
             System.out.println("Java ОШИБКА: " + e.getMessage());
             e.printStackTrace();
-
-            // Озвучка на случай, если вообще упала сеть до ESP32
             voiceOutputService.speak("Сбой сети. Самолёт не запущен.");
-
             return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
         }
     }
