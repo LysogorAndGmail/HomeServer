@@ -192,90 +192,90 @@ public class DataController {
     }
 
     @PostMapping("/mrija/radioOn")
-        public ResponseEntity<String> turnOnMrija() {
-            String espUrl = "http://192.168.2.101/radio/on";
-            try {
-                System.out.println("Java: Отправка команды ON на ESP32...");
-                URL url = new URL(espUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setConnectTimeout(3000); // 3 секунды таймаут
-                connection.setReadTimeout(3000);
+    public ResponseEntity<String> turnOnMrijaRadio() {
+        String espUrl = "http://192.168.2.101/radio/on";
+        try {
+            System.out.println("Java: Отправка команды ON на ESP32...");
+            URL url = new URL(espUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(3000); // 3 секунды таймаут
+            connection.setReadTimeout(3000);
 
-                int responseCode = connection.getResponseCode();
-                if (responseCode == 200) {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String inputLine;
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-                    in.close();
-
-                    System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
-
-                    // =========================================================================
-                    // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
-                    // =========================================================================
-                    voiceOutputService.speak("Радио включено");
-                    // =========================================================================
-
-                    return ResponseEntity.ok(response.toString());
-                } else {
-                    System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
-
-                    // Опционально: можно озвучить и ошибку, если плата недоступна
-                    voiceOutputService.speak("Ошибка старта. Мрия не отвечает.");
-
-                    return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
                 }
-            } catch (Exception e) {
-                System.out.println("Java ОШИБКА: " + e.getMessage());
-                e.printStackTrace();
+                in.close();
 
-                // Озвучка на случай, если вообще упала сеть до ESP32
-                voiceOutputService.speak("Сбой сети. Самолёт не запущен.");
+                System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
 
-                return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+                // =========================================================================
+                // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
+                // =========================================================================
+                voiceOutputService.speak("Радио включено");
+                // =========================================================================
+
+                return ResponseEntity.ok(response.toString());
+            } else {
+                System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
+
+                // Опционально: можно озвучить и ошибку, если плата недоступна
+                voiceOutputService.speak("Ошибка старта. Мрия не отвечает.");
+
+                return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
             }
+        } catch (Exception e) {
+            System.out.println("Java ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+
+            // Озвучка на случай, если вообще упала сеть до ESP32
+            voiceOutputService.speak("Сбой сети. Самолёт не запущен.");
+
+            return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
         }
+    }
 
-        @PostMapping("/mrija/radioOff")
-        public ResponseEntity<String> turnOffMrija() {
-            String espUrl = "http://192.168.2.101/radio/off";
-            try {
-                System.out.println("Java: Отправка команды OFF на ESP32...");
-                URL url = new URL(espUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setConnectTimeout(3000);
-                connection.setReadTimeout(3000);
+    @PostMapping("/mrija/radioOff")
+    public ResponseEntity<String> turnOffMrijaRadio() {
+        String espUrl = "http://192.168.2.101/radio/off";
+        try {
+            System.out.println("Java: Отправка команды OFF на ESP32...");
+            URL url = new URL(espUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
 
-                int responseCode = connection.getResponseCode();
-                if (responseCode == 200) {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String inputLine;
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-                    in.close();
-                    System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
-
-                    // =========================================================================
-                    // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
-                    // =========================================================================
-                    voiceOutputService.speak("Радио выключено");
-                    // =========================================================================
-
-                    return ResponseEntity.ok(response.toString());
-                } else {
-                    return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
                 }
-            } catch (Exception e) {
-                System.out.println("Java ОШИБКА: " + e.getMessage());
-                e.printStackTrace();
-                return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+                in.close();
+                System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+
+                // =========================================================================
+                // ДОБАВЛЯЕМ ОЗВУЧКУ: Магия происходит здесь, когда железка подтвердила команду
+                // =========================================================================
+                voiceOutputService.speak("Радио выключено");
+                // =========================================================================
+
+                return ResponseEntity.ok(response.toString());
+            } else {
+                return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
             }
+        } catch (Exception e) {
+            System.out.println("Java ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
         }
+    }
 }
