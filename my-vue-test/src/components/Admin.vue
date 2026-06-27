@@ -116,7 +116,7 @@ const RadioOn = async () => {
     const response = await api.post('/api/mrija/radioOn', null, {
       params: {
         volume: radioVolume.value,
-        ozvuchka: ozvuchka
+        ozvuchka: ozvuchka.value
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
@@ -133,7 +133,7 @@ const RadioOnVolume = async () => {
     const response = await api.post('/api/mrija/radioOn', null, {
       params: {
         volume: radioVolume.value,
-        ozvuchka: ozvuchka
+        ozvuchka: ozvuchka.value
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
