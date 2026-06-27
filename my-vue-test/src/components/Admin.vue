@@ -229,6 +229,7 @@ onMounted(() => {
           <label for="customRange3" class="form-label">Gromkost: {{ radioVolume }}</label>
           <input
               v-model.number="radioVolume"
+              @change="RadioOn"
               type="range"
               class="form-range radio_value"
               min="0"
@@ -236,6 +237,7 @@ onMounted(() => {
               step="3"
               id="customRange3"
           >
+          <br />
           <button type="button" class="btn btn-sm ms-2 btn-primary" @click="RadioOn">
             Start radio 🚀
           </button>
