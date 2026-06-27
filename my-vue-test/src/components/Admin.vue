@@ -295,6 +295,7 @@ onMounted(() => {
           <label for="customRange4" class="form-label">Chastota miganija: {{ chastota }}</label>
           <input
               v-model.number="chastota"
+              @change="BlickOn"
               type="range"
               class="form-range chastota"
               min="1"
@@ -305,6 +306,7 @@ onMounted(() => {
           <label for="customRange5" class="form-label">Interval miganija: {{ interval }}</label>
           <input
               v-model.number="interval"
+              @change="BlickOn"
               type="range"
               class="form-range interval"
               min="1"
