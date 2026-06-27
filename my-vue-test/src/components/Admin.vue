@@ -20,7 +20,7 @@ const isSubmitting = ref(false)
 // Адрес нашей ESP32-S3 в основной сети
 const espIp = 'http://192.168.2.101'
 
-const ozvuchka = ref(1)
+const isOzvuchkaEnabled = ref(true)
 
 const chastota = ref(1)
 const interval = ref(1)
@@ -84,17 +84,6 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString('ru-RU');
 }
 
-// Включение светодиода на ESP32
-const BlickOn = async () => {
-  try {
-    // Шлём запрос на свой бэкенд, а не на плату напрямую
-    const response = await api.post('/api/mrija/blickOn');
-    recordsText.value = `Mrija Ответ: ${response.data}`;
-  } catch (e) {
-    recordsText.value = 'Ошибка бэкенда при включении Mrija';
-  }
-};
-
 // Выключение светодиода на ESP32 (Добавили недостающую функцию)
 // Выключение светодиода на ESP32 (ИСПРАВЛЕНО)
 const BlickOff = async () => {
@@ -114,13 +103,12 @@ const radioVolume = ref(12)
 
 // 2. Обновляем функцию включения радио
 const RadioOn = async () => {
-  ozvuchka.value = 1;
   try {
     // Передаем громкость в params, axios сам превратит это в /api/mrija/radioOn?volume=12
     const response = await api.post('/api/mrija/radioOn', null, {
       params: {
         volume: radioVolume.value,
-        ozvuchka: ozvuchka.value
+        ozvuchka: 1
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
@@ -131,13 +119,12 @@ const RadioOn = async () => {
 
 // 2. Обновляем функцию включения радио
 const RadioOnVolume = async () => {
-  ozvuchka.value = 0;
   try {
     // Передаем громкость в params, axios сам превратит это в /api/mrija/radioOn?volume=12
     const response = await api.post('/api/mrija/radioOn', null, {
       params: {
         volume: radioVolume.value,
-        ozvuchka: ozvuchka.value
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
@@ -223,7 +210,16 @@ const formatTime = (isoString) => {
   return date.toLocaleTimeString() + ' ' + date.toLocaleDateString()
 }
 
-
+// Включение светодиода на ESP32
+const BlickOn = async () => {
+  try {
+    // Шлём запрос на свой бэкенд, а не на плату напрямую
+    const response = await api.post('/api/mrija/blickOn');
+    recordsText.value = `Mrija Ответ: ${response.data}`;
+  } catch (e) {
+    recordsText.value = 'Ошибка бэкенда при включении Mrija';
+  }
+};
 
 onMounted(() => {
   //getJavaData(); for now 
@@ -241,6 +237,10 @@ onMounted(() => {
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Dashboard</h1>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
+          <label class="form-check-label" for="flexSwitchCheckDefault">Ozuchka</label>
+        </div>
         <div class="btn-toolbar mb-2 mb-md-0">
           <button type="button" class="btn btn-sm btn-outline-secondary" @click="loadApiLogs">
             Обновить таблицу
