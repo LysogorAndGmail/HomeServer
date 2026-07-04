@@ -9,7 +9,7 @@ import java.io.InputStream;
 public class AudioRecognitionService {
 
     // Твой триггер
-    private static final String TRIGGER_WORD = "мрия";
+    private static final String TRIGGER_WORD = "мак";
 
     // --- СТАРЫЙ МЕТОД (ОСТАВЛЯЕМ КАК ЕСТЬ) ---
     public String recognizeSpeech(InputStream inputStream, Model model) throws Exception {
@@ -58,7 +58,7 @@ public class AudioRecognitionService {
                 } else {
                     String partialJson = recognizer.getPartialResult();
                     if (!partialJson.contains("\"partial\" : \"\"")) {
-                        System.out.println("VOSK [Слышу прямо сейчас]: " + partialJson);
+                        //System.out.println("VOSK [Слышу прямо сейчас]: " + partialJson); poka otkluchil
                     }
                 }
             }
@@ -78,11 +78,32 @@ public class AudioRecognitionService {
 
         System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
-        // Проверяем наличие триггера "мрия"
+        // Проверяем наличие триггера "mac"
         if (cleanText.contains(TRIGGER_WORD)) {
-            System.out.println("!!! СРАБОТАЛ ТРИГГЕР МРИЯ !!!");
+             System.out.println("=== ТРИГГЕР [MAC] НАЙДЕН! Воспроизвожу системный звук... ===");
+             // Запускаем короткий писк (синусоиду 800 Гц на 0.2 секунды) через ALSA
+             playSystemBeep();
             // Твоя логика (например, если содержит "диск" -> вызвать DiskSpaceService и т.д.)
         }
+
+    }
+
+    private void playSystemBeep() {
+        new Thread(() -> {
+            try {
+                // Добавили флаг -D plughw:2,0 чтобы направить писк в USB аудиоустройство
+                // -c 1 (1 канал), -t sine (синусоида), -f 800 (800 Гц), -l 1 (1 цикл)
+                String[] command = {
+                    "/bin/sh",
+                    "-c",
+                    "speaker-test -D plughw:2,0 -c 1 -t sine -f 800 -l 1 > /dev/null 2>&1"
+                };
+                Process process = Runtime.getRuntime().exec(command);
+                process.waitFor();
+            } catch (Exception e) {
+                System.err.println("Не удалось воспроизвести системный звук: " + e.getMessage());
+            }
+        }).start();
     }
 
     // Вспомогательный интерфейс

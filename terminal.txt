@@ -80,3 +80,6 @@ root@lysogorand:/home/lysogorand# ffmpeg -y -f alsa -channels 1 -sample_rate 441
 //////////////// ssh ////////////
 ssh lysogorand@84.188.80.47 -p 2222
 PS C:\Users\LysogorAnd> ssh -v qubvl01@134.2.66.38
+
+//////////// vizov striminga //////////
+stdbuf -oL -o0 ffmpeg -nostdin -f alsa -i plughw:2,0 -acodec pcm_s16le -ac 1 -ar 16000 -f s16le - | curl -H "Content-Type: application/octet-stream" -H "Transfer-Encoding: chunked" -X POST -T - http://127.0.0.1:8080/api/audio/stream
