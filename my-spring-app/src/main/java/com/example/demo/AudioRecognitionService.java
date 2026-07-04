@@ -9,7 +9,7 @@ import java.io.InputStream;
 public class AudioRecognitionService {
 
     // Твой триггер
-    private static final String TRIGGER_WORD = "Сервер";
+    private static final String TRIGGER_WORD = "сервер";
 
     // --- СТАРЫЙ МЕТОД (ОСТАВЛЯЕМ КАК ЕСТЬ) ---
     public String recognizeSpeech(InputStream inputStream, Model model) throws Exception {
@@ -37,74 +37,66 @@ public class AudioRecognitionService {
         }
     }
 
-    // --- ИСПРАВЛЕННЫЙ МЕТОД ДЛЯ ПОСТОЯННОГО СТРИМА ---
-    // Добавили Model model в параметры, чтобы создать Recognizer
-    public void listenLoop(InputStream audioStream, Model model) {
-        // Создаем рекогнайзер внутри try-with-resources
-        try (Recognizer recognizer = new Recognizer(model, 16000f)) {
-            byte[] buffer = new byte[4096];
-            int bytesRead;
+   // --- ЦИКЛ ПРОСЛУШИВАНИЯ БЕЗ ЛИШНИХ ЛОГОВ ---
+       public void listenLoop(InputStream audioStream, Model model) {
+           try (Recognizer recognizer = new Recognizer(model, 16000f)) {
+               byte[] buffer = new byte[4096];
+               int bytesRead;
 
-            System.out.println("=== [VOSK] Бесконечный поток прослушивания запущен ===");
+               System.out.println("=== [VOSK] Бесконечный поток прослушивания запущен ===");
 
-            while ((bytesRead = audioStream.read(buffer)) != -1) {
-                // Исправлено: acceptWaveForm (с большой буквы F)
-                if (recognizer.acceptWaveForm(buffer, bytesRead)) {
-                    String resultJson = recognizer.getResult();
-                    System.out.println("VOSK [Финальная фраза]: " + resultJson);
+               while ((bytesRead = audioStream.read(buffer)) != -1) {
+                   if (recognizer.acceptWaveForm(buffer, bytesRead)) {
+                       String resultJson = recognizer.getResult();
+                       String cleanText = parseVoskText(resultJson);
 
-                    // Теперь метод существует и обрабатывает строку
-                    processCommand(resultJson);
-                } else {
-                    String partialJson = recognizer.getPartialResult();
-                    if (!partialJson.contains("\"partial\" : \"\"")) {
-                        //System.out.println("VOSK [Слышу прямо сейчас]: " + partialJson); poka otkluchil
-                    }
-                }
-            }
-            System.out.println("=== [VOSK] Входной аудиопоток завершился (InputStream closed) ===");
-        } catch (Exception e) {
-            System.err.println("Ошибка в цикле прослушивания Vosk: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+                       // Защита от спама: если фраза пустая, игнорируем
+                       if (cleanText.isEmpty()) {
+                           continue;
+                       }
 
-    // --- ДОБАВЛЕННЫЙ МЕТОД ОБРАБОТКИ КОМАНДЫ ---
-    private void processCommand(String json) {
-        String cleanText = parseVoskText(json);
-        if (cleanText.isEmpty()) {
-            return;
-        }
+                       System.out.println("VOSK [Финальная фраза]: " + resultJson);
+                       processCommand(cleanText);
+                   } else {
+                       String partialJson = recognizer.getPartialResult();
+                       // При желании можно раскомментировать для отладки partial результатов
+                   }
+               }
+               System.out.println("=== [VOSK] Входной аудиопоток завершился (InputStream closed) ===");
+           } catch (Exception e) {
+               System.err.println("Ошибка в цикле прослушивания Vosk: " + e.getMessage());
+               e.printStackTrace();
+           }
+       }
 
-        //System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
+       // --- ОБРАБОТКА КОМАНДЫ (ПРИНИМАЕТ ЧИСТЫЙ ТЕКСТ) ---
+       private void processCommand(String cleanText) {
+           System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
-        // Проверяем наличие триггера "mac"
-        if (cleanText.contains(TRIGGER_WORD)) {
-             System.out.println("=== ТРИГГЕР [MAC] НАЙДЕН! Воспроизвожу системный звук... ===");
-             // Запускаем короткий писк (синусоиду 800 Гц на 0.2 секунды) через ALSA
-             playSystemBeep();
-            // Твоя логика (например, если содержит "диск" -> вызвать DiskSpaceService и т.д.)
-        }
+           // Проверяем триггер "мак"
+           if (cleanText.contains(TRIGGER_WORD) || cleanText.contains("mac")) {
+                System.out.println("=== ТРИГГЕР [MAC] НАЙДЕН! Воспроизвожу звук Mac Chime... ===");
+                playSystemBeep();
+           }
+       }
 
-    }
-
-    private void playSystemBeep() {
-        new Thread(() -> {
-            try {
-                // Добавили флаг -D plughw:2,0 чтобы направить писк в USB аудиоустройство
-                // -c 1 (1 канал), -t sine (синусоида), -f 800 (800 Гц), -l 1 (1 цикл)
-                String[] command = {
-                    "/bin/sh",
-                    "-c",
-                    "speaker-test -D plughw:2,0 -c 1 -t sine -f 800 -l 1 > /dev/null 2>&1"
-                };
-                Process process = Runtime.getRuntime().exec(command);
-                process.waitFor();
-            } catch (Exception e) {
-                System.err.println("Не удалось воспроизвести системный звук: " + e.getMessage());
-            }
-        }).start();
-    }
+       // --- БЕЗОПАСНЫЙ СТРИМ ЗВУКА ЧЕРЕЗ DEFAULT МИКШЕР ---
+       private void playSystemBeep() {
+           new Thread(() -> {
+               try {
+                   // Воспроизводим скачанный звук Mac через дефолтный микшер, чтобы не блокировать карту
+                   String[] command = {
+                       "/bin/sh",
+                       "-c",
+                       "aplay -D default -q /home/lysogorand/my-spring-app/mac_chime.wav > /dev/null 2>&1"
+                   };
+                   Process process = Runtime.getRuntime().exec(command);
+                   process.waitFor();
+               } catch (Exception e) {
+                   System.err.println("Не удалось воспроизвести системный звук: " + e.getMessage());
+               }
+           }).start();
+       }
 
     // Вспомогательный интерфейс
     public interface CommandListener {
