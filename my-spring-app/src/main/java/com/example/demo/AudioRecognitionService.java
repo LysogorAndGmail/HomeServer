@@ -8,10 +8,10 @@ import java.io.InputStream;
 @Service
 public class AudioRecognitionService {
 
-    // Твой триггер (пиши в нижнем регистре, Vosk выдает текст маленькими буквами)
+    // Твой триггер
     private static final String TRIGGER_WORD = "мрия";
 
-    // --- ОСТАВЛЯЕМ ТВОЙ СТАРЫЙ МЕТОД БЕЗ ИЗМЕНЕНИЙ ---
+    // --- СТАРЫЙ МЕТОД (ОСТАВЛЯЕМ КАК ЕСТЬ) ---
     public String recognizeSpeech(InputStream inputStream, Model model) throws Exception {
         try (Recognizer recognizer = new Recognizer(model, 16000f)) {
             byte[] buffer = new byte[4096];
@@ -37,28 +37,27 @@ public class AudioRecognitionService {
         }
     }
 
-    // --- ДОБАВЛЯЕМ НОВЫЙ МЕТОД ДЛЯ ПОСТОЯННОГО СТРИМА ---
-    public void listenLoop(InputStream audioStream) {
-        try {
-            // Убедись, что размер буфера достаточен (например, 4096 байт)
+    // --- ИСПРАВЛЕННЫЙ МЕТОД ДЛЯ ПОСТОЯННОГО СТРИМА ---
+    // Добавили Model model в параметры, чтобы создать Recognizer
+    public void listenLoop(InputStream audioStream, Model model) {
+        // Создаем рекогнайзер внутри try-with-resources
+        try (Recognizer recognizer = new Recognizer(model, 16000f)) {
             byte[] buffer = new byte[4096];
             int bytesRead;
 
             System.out.println("=== [VOSK] Бесконечный поток прослушивания запущен ===");
 
             while ((bytesRead = audioStream.read(buffer)) != -1) {
-                // Если Vosk распознал фразу (пауза в речи)
-                if (recognizer.acceptWaveform(buffer, bytesRead)) {
+                // Исправлено: acceptWaveForm (с большой буквы F)
+                if (recognizer.acceptWaveForm(buffer, bytesRead)) {
                     String resultJson = recognizer.getResult();
                     System.out.println("VOSK [Финальная фраза]: " + resultJson);
 
-                    // Твоя логика обработки команды (например, "мрия включи...")
+                    // Теперь метод существует и обрабатывает строку
                     processCommand(resultJson);
                 } else {
-                    // Это промежуточные данные, пока человек говорит.
-                    // Выводим в лог, чтобы ОДНОЗНАЧНО видеть, что микрофон шлет данные
                     String partialJson = recognizer.getPartialResult();
-                    if (!partialJson.contains("\"partial\" : \"\"")) { // не спамим пустыми
+                    if (!partialJson.contains("\"partial\" : \"\"")) {
                         System.out.println("VOSK [Слышу прямо сейчас]: " + partialJson);
                     }
                 }
@@ -70,12 +69,28 @@ public class AudioRecognitionService {
         }
     }
 
-    // Вспомогательный интерфейс (лямбда-коллбэк)
+    // --- ДОБАВЛЕННЫЙ МЕТОД ОБРАБОТКИ КОМАНДЫ ---
+    private void processCommand(String json) {
+        String cleanText = parseVoskText(json);
+        if (cleanText.isEmpty()) {
+            return;
+        }
+
+        System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
+
+        // Проверяем наличие триггера "мрия"
+        if (cleanText.contains(TRIGGER_WORD)) {
+            System.out.println("!!! СРАБОТАЛ ТРИГГЕР МРИЯ !!!");
+            // Твоя логика (например, если содержит "диск" -> вызвать DiskSpaceService и т.д.)
+        }
+    }
+
+    // Вспомогательный интерфейс
     public interface CommandListener {
         void onCommandReceived(String command);
     }
 
-    // Твой оригинальный парсер JSON (оставляем как есть)
+    // Оригинальный парсер JSON
     private String parseVoskText(String json) {
         if (json == null || !json.contains("\"text\" : \"")) {
             return "";
