@@ -44,7 +44,7 @@ public class DataController {
         System.out.println("VOSK: Модель готова!");
     }
 
-    @PostMapping("audio/stream")
+ @PostMapping("audio/stream")
     public ResponseEntity<String> streamAudio(InputStream inputStream) {
         try {
             // Метод уйдет в бесконечный цикл обработки входящего потока
