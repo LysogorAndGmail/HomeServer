@@ -9,7 +9,7 @@ import java.io.InputStream;
 public class AudioRecognitionService {
 
     // Твой триггер
-    private static final String TRIGGER_WORD = "мак";
+    private static final String TRIGGER_WORD = "Сервер";
 
     // --- СТАРЫЙ МЕТОД (ОСТАВЛЯЕМ КАК ЕСТЬ) ---
     public String recognizeSpeech(InputStream inputStream, Model model) throws Exception {
@@ -76,7 +76,7 @@ public class AudioRecognitionService {
             return;
         }
 
-        System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
+        //System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
         // Проверяем наличие триггера "mac"
         if (cleanText.contains(TRIGGER_WORD)) {
