@@ -44,9 +44,21 @@ public class DataController {
         System.out.println("VOSK: Модель готова!");
     }
 
-
     @PostMapping("audio/stream")
     public ResponseEntity<String> streamAudio(InputStream inputStream) {
+        try {
+            // Метод уйдет в бесконечный цикл обработки входящего потока
+            String finalLeftover = audioRecognitionService.recognizeSpeech(inputStream, model);
+            return ResponseEntity.ok("{\"status\":\"stream_ended\",\"leftover\":\"" + finalLeftover + "\"}");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Ошибка стрима: " + e.getMessage());
+        }
+    }
+
+
+    @PostMapping("audio/stream_old")
+    public ResponseEntity<String> streamAudio_old(InputStream inputStream) {
         try {
             String cleanText = audioRecognitionService.recognizeSpeech(inputStream, model);
 
@@ -57,7 +69,7 @@ public class DataController {
                     DiskSpaceService diskService = new DiskSpaceService();
                     String diskInfo = diskService.apply(new DiskSpaceService.Request("")).diskInfo();
                     System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
-                    
+
                     // --- ВОТ ОНА, МАГИЯ ЗВУКА ---
                     // Говорим Mac Mini произнести лаконичный ответ вслух
                     voiceOutputService.speak("Проверяю память. На основном диске свободно 855 гигабайт.");
