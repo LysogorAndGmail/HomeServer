@@ -46,16 +46,17 @@ public class DataController {
 
     @PostMapping("audio/stream")
     public ResponseEntity<String> streamAudio(InputStream inputStream) {
-        System.out.println("=== [КОНТРОЛЛЕР] Ура! Поток успешно зашёл в /api/audio/stream ===");
+        System.out.println("=== [КОНТРОЛЛЕР] Входящий аудиопоток подключен. Передаем в listenLoop ===");
         try {
-            // Метод уйдет в бесконечный цикл обработки входящего потока
-            String finalLeftover = audioRecognitionService.recognizeSpeech(inputStream, model);
-            System.out.println("=== [КОНТРОЛЛЕР] Поток аудио успешно завершён. Остаток: " + finalLeftover);
-            return ResponseEntity.ok("{\"status\":\"stream_ended\",\"leftover\":\"" + finalLeftover + "\"}");
+            // Вызываем правильный метод, который умеет логировать на лету
+            audioRecognitionService.listenLoop(inputStream, model);
+
+            System.out.println("=== [КОНТРОЛЛЕР] Поток завершен ===");
+            return ResponseEntity.ok("{\"status\":\"success\"}");
         } catch (Exception e) {
-            System.err.println("=== [КОНТРОЛЛЕР] Ошибка внутри streamAudio: " + e.getMessage());
+            System.err.println("=== [КОНТРОЛЛЕР] Ошибка: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body("Ошибка стрима: " + e.getMessage());
+            return ResponseEntity.status(500).body("Ошибка: " + e.getMessage());
         }
     }
 
