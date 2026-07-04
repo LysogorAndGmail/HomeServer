@@ -89,3 +89,6 @@ killall -9 ffmpeg
 
 # 2. На всякий случай проверяем, не держит ли кто-то ещё звуковую карту
 fuser -v /dev/snd/*
+
+////////////////////// stream ////////////
+pm2 start /home/lysogorand/my-spring-app/start-stream.sh --name "audio-stream"
