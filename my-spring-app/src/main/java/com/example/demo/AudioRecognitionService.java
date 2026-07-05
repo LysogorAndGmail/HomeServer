@@ -109,7 +109,7 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
 
         } catch (Exception e) {
             System.err.println("Ошибка при выполнении голосовой команды: " + e.getMessage());
-        } finaly {
+        } finally {
             recognizer.reset();
             isSpeaking = false;
             System.out.println("=== Голосовой ответ завершен. Vosk снова слушает микрофон ===");
