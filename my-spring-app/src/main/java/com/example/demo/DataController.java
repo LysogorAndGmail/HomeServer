@@ -49,7 +49,7 @@ public class DataController {
         System.out.println("=== [КОНТРОЛЛЕР] Входящий аудиопоток подключен. Передаем в listenLoop ===");
         try {
             // Вызываем правильный метод, который умеет логировать на лету
-            audioRecognitionService.listenLoop(inputStream, model);
+            audioRecognitionService.listenLoop(inputStream);
 
             System.out.println("=== [КОНТРОЛЛЕР] Поток завершен ===");
             return ResponseEntity.ok("{\"status\":\"success\"}");
