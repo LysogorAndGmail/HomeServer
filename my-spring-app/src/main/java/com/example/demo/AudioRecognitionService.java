@@ -120,23 +120,22 @@ public class AudioRecognitionService {
         // end test
     }
 
-    // --- БЕЗОПАСНЫЙ СТРИМ ЗВУКА ЧЕРЕЗ ВИРТУАЛЬНЫЙ МИКШЕР DMIX ---
-        private void playSystemBeep() {
-            new Thread(() -> {
-                try {
-                    // Меняем "-D default" на "-D plug:dmix", чтобы не было ошибки Device or resource busy
-                   String[] command = {
-                       "/bin/sh",
-                       "-c",
-                       "alsaplayer -i text -d plug:dmix /home/lysogorand/my-spring-app/mac_chime.wav > /dev/null 2>&1"
-                   };
-                    Process process = Runtime.getRuntime().exec(command);
-                    process.waitFor();
-                } catch (Exception e) {
-                    System.err.println("Не удалось воспроизвести системный звук: " + e.getMessage());
-                }
-            }).start();
-        }
+   private void playSystemBeep() {
+       new Thread(() -> {
+           try {
+               // Использование ключа -D plughw:0,0 или плагина dmix напрямую в обход дефолтного канала
+               String[] command = {
+                   "/bin/sh",
+                   "-c",
+                   "aplay -D plughw:0,0 -q /home/lysogorand/my-spring-app/mac_chime.wav > /dev/null 2>&1"
+               };
+               Process process = Runtime.getRuntime().exec(command);
+               process.waitFor();
+           } catch (Exception e) {
+               System.err.println("Не удалось воспроизвести системный звук: " + e.getMessage());
+           }
+       }).start();
+   }
 
     // Вспомогательный интерфейс (если используется где-то вовне)
     public interface CommandListener {
