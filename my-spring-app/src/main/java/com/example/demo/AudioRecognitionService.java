@@ -61,7 +61,7 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
     String answerText = "";
 
     // 1. КОМАНДА: ПРОВЕРКА ДИСКА
-    if (cleanText.contains("диск") || cleanText.contains("мария")) {
+    if (cleanText.contains("сколько памяти")) {
         commandExecuted = true;
         try {
             String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
@@ -72,7 +72,7 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
         }
     }
     // 2. КОМАНДА: ТЕКУЩЕЕ ВРЕМЯ
-    else if (cleanText.contains("время") || cleanText.contains("времени") || cleanText.contains("час")) {
+    else if (cleanText.contains("сколько время")) {
         commandExecuted = true;
         java.time.ZoneId zoneId = java.time.ZoneId.of("Europe/Berlin");
         java.time.ZonedDateTime now = java.time.ZonedDateTime.now(zoneId);
@@ -81,7 +81,7 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
         answerText = "Сейчас " + hour + " " + getHourDeclension(hour) + " " + minute + " " + getMinuteDeclension(minute);
     }
     // 3. НОВАЯ КОМАНДА: ПОГОДА НА УЛИЦЕ
-    else if (cleanText.contains("температура") || cleanText.contains("погода") || cleanText.contains("улице")) {
+    else if (cleanText.contains("какая погода")) {
         commandExecuted = true;
         System.out.println("Java: Запрос погоды...");
         String tempText = weatherService.getCurrentTemperature();
