@@ -42,7 +42,7 @@ public void listenLoop(InputStream audioStream) {
                 if (!cleanText.isEmpty()) {
                     System.out.println("VOSK [Финальная фраза]: " + resultJson);
                     // ТЕПЕРЬ ПЕРЕДАЕМ НАШ RECOGNIZER внутрь обработки команды
-                    processCommand(cleanText, recognizer);
+                    processCommand(cleanText, recognizer, audioStream);
                 }
             }
         }
