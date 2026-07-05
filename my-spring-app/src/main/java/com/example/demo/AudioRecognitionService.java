@@ -126,7 +126,7 @@ public class AudioRecognitionService {
                     String[] command = {
                         "/bin/sh",
                         "-c",
-                        "aplay -D plug:dmix -q /home/lysogorand/my-spring-app/mac_chime.wav > /dev/null 2>&1"
+                        "aplay -D plughw:0,0 -q /home/lysogorand/my-spring-app/mac_chime.wav > /dev/null 2>&1"
                     };
                     Process process = Runtime.getRuntime().exec(command);
                     process.waitFor();
