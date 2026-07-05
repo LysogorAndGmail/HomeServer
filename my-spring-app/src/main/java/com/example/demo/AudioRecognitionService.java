@@ -56,48 +56,99 @@ public void listenLoop(InputStream audioStream) {
 private void processCommand(String cleanText, Recognizer recognizer, InputStream audioStream) {
     System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
-    if (cleanText.contains("диsk") || cleanText.contains("диск") || cleanText.contains("мария")) {
-        // 1. Блокируем обработку
-        isSpeaking = true;
-        recognizer.reset();
+    // Флаг, определяющий, была ли найдена и выполнена команда
+    boolean commandExecuted = false;
+    String answerText = "";
 
+    // 1. КОМАНДА: ПРОВЕРКА ДИСКА
+    if (cleanText.contains("диск") || cleanText.contains("мария")) {
+        commandExecuted = true;
         try {
             String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
             System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
             String readableSpace = extractAvailableSpace(diskInfo);
+            answerText = "Проверяю память. На основном диске свободно " + readableSpace;
+        } catch (Exception e) {
+            answerText = "Не удалось проверить память. Произошла ошибка.";
+        }
+    }
+    // 2. КОМАНДА: ТЕКУЩЕЕ ВРЕМЯ
+    else if (cleanText.contains("время") || cleanText.contains("времени") || cleanText.contains("час")) {
+        commandExecuted = true;
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        int hour = now.getHour();
+        int minute = now.getMinute();
 
-            // 2. Синхронно проговариваем фразу (Java честно ждет здесь окончания aplay)
-            voiceOutputService.speak("Проверяю память. На основном диске свободно " + readableSpace);
+        // Формируем человекочитаемый текст с правильными окончаниями
+        answerText = "Сейчас " + hour + " " + getHourDeclension(hour) + " " + minute + " " + getMinuteDeclension(minute);
+    }
 
-            // Небольшая пауза, чтобы акустическое эхо в комнате физически затихло
-            Thread.sleep(1000);
+    // Если какая-то команда сработала, запускаем блокировку и озвучку
+    if (commandExecuted) {
+        isSpeaking = true;
+        recognizer.reset();
 
-            // 3. УНИЧТОЖАЕМ ХВОСТЫ БУФЕРА
-            // Читаем всё, что прямо сейчас доступно в потоке Java
+        try {
+            // Озвучиваем сформированный текст
+            voiceOutputService.speak(answerText);
+
+            // Пауза, чтобы звук затих в комнате
+            Thread.sleep(1500);
+
+            // Очищаем сетевой буфер
             int availableBytes = audioStream.available();
             if (availableBytes > 0) {
                 byte[] wasteBuffer = new byte[availableBytes];
                 audioStream.read(wasteBuffer);
             }
 
-            // 4. ДЕЛАЕМ СЛЕПУЮ ЗОНУ ДЛЯ VOSK
-            // Скормим распознавателю пустую тишину (нули), чтобы принудительно
-            // закрыть текущую фразу, если туда успел прорваться кусок звука динамика
-            byte[] silence = new byte[3200]; // ~0.1 секунды чистой тишины для 16кГц
+            // Слепая зона для Vosk (тишина)
+            byte[] silence = new byte[3200];
             recognizer.acceptWaveForm(silence, silence.length);
-
-            // Забираем промежуточный результат, тем самым полностью очищая внутренний стек Vosk
             recognizer.getResult();
 
         } catch (Exception e) {
-            System.err.println("Ошибка при озвучке: " + e.getMessage());
+            System.err.println("Ошибка при выполнении голосовой команды: " + e.getMessage());
         } finally {
-            // 5. Окончательный сброс и открытие микрофона
             recognizer.reset();
             isSpeaking = false;
             System.out.println("=== Голосовой ответ завершен. Vosk снова слушает микрофон ===");
         }
     }
+}
+
+// Вспомогательный метод для склонения часов
+private String getHourDeclension(int hour) {
+    int remainder = hour % 10;
+    int remainder100 = hour % 100;
+
+    if (remainder100 >= 11 && remainder100 <= 19) {
+        return "часов";
+    }
+    if (remainder == 1) {
+        return "час";
+    }
+    if (remainder >= 2 && remainder <= 4) {
+        return "часа";
+    }
+    return "часов";
+}
+
+// Вспомогательный метод для склонения минут
+private String getMinuteDeclension(int minute) {
+    int remainder = minute % 10;
+    int remainder100 = minute % 100;
+
+    if (remainder100 >= 11 && remainder100 <= 19) {
+        return "минут";
+    }
+    if (remainder == 1) {
+        return "минута";
+    }
+    if (remainder >= 2 && remainder <= 4) {
+        return "минуты";
+    }
+    return "минут";
 }
 
 private String parseVoskText(String json) {
