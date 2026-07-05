@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class WeatherService {
 
     // Вставь сюда свой API-ключ от OpenWeatherMap
-    private static final String API_KEY = "e08d0a28190ccabf76290259d3e6b05d";
+    private static final String API_KEY = "b4d7724ae35984c01952e44da7dd3845";
     // Указываем твой город (можно написать "Tubingen,DE" или "Dettenhausen,DE")
     private static final String CITY = "Tubingen,DE";
     private static final String URL = "https://api.openweathermap.org/data/2.5/weather?q=" + CITY + "&appid=" + API_KEY + "&units=metric&lang=ru";
