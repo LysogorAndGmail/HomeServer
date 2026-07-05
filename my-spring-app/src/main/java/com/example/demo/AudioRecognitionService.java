@@ -73,9 +73,14 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
         }
     }
     // 2. КОМАНДА: ТЕКУЩЕЕ ВРЕМЯ
+    // 2. КОМАНДА: ТЕКУЩЕЕ ВРЕМЯ
     else if (cleanText.contains("время") || cleanText.contains("времени") || cleanText.contains("час")) {
         commandExecuted = true;
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        // Явно задаем часовой пояс Германии (Берлин/Тюбинген)
+        java.time.ZoneId zoneId = java.time.ZoneId.of("Europe/Berlin");
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(zoneId);
+
         int hour = now.getHour();
         int minute = now.getMinute();
 
