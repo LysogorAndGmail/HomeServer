@@ -84,7 +84,7 @@ public class AudioRecognitionService {
     // --- ОБРАБОТКА КОМАНДЫ (ПРИНИМАЕТ ЧИСТЫЙ ТЕКСТ) ---
     private void processCommand(String cleanText) {
         System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
-
+        playSystemBeep();
         /*
         // Проверяем триггер "сервер"
         if (cleanText.contains(TRIGGER_WORD)) {
