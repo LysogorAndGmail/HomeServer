@@ -111,15 +111,16 @@ public class AudioRecognitionService {
          if (cleanText.contains("диск")) {
             //playSystemBeep();
             // 1. Получаем сырую строку от сервиса
-            String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
-            System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
+            //String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
+            //System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
 
             // 2. Выделяем доступное место для озвучки
-            String readableSpace = extractAvailableSpace(diskInfo);
+            //String readableSpace = extractAvailableSpace(diskInfo);
 
             // 3. Передаем реальные данные в голос
             //voiceOutputService.speak("Проверяю память. На основном диске свободно " + readableSpace);
             voiceOutputService.speak("Проверяю.");
+            voiceOutputService.speak("Проверяю2");
         }
         // end test
     }
