@@ -5,30 +5,21 @@ import org.vosk.Recognizer;
 import org.springframework.stereotype.Service;
 import java.io.InputStream;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import java.io.File;
-
 @Service
 public class AudioRecognitionService {
 
-    // Твой триггер
     private static final String TRIGGER_WORD = "сервер";
     private final VoiceOutputService voiceOutputService;
-    private final DiskSpaceService diskSpaceService; // <-- Добавлено
+    private final DiskSpaceService diskSpaceService;
     private final Model model;
 
-    // Внедряем все зависимости через конструктор Spring
     public AudioRecognitionService(VoiceOutputService voiceOutputService,
-                                   DiskSpaceService diskSpaceService) throws Exception {
-        this.voiceOutputService = voiceOutputService;
-        this.diskSpaceService = diskSpaceService; // <-- Инициализируем
-
-        // Путь к модели Vosk
-        this.model = new Model("/home/lysogorand/my-spring-app/model-ru");
-        System.out.println("VOSK: Модель готова!");
-    }
+    DiskSpaceService diskSpaceService) throws Exception {
+    this.voiceOutputService = voiceOutputService;
+    this.diskSpaceService = diskSpaceService;
+    this.model = new Model("/home/lysogorand/my-spring-app/model-ru");
+    System.out.println("VOSK: Модель готова!");
+}
 
     // --- СТАРЫЙ МЕТОД (ОСТАВЛЯЕМ КАК ЕСТЬ) ---
     public String recognizeSpeech(InputStream inputStream, Model model) throws Exception {
@@ -56,10 +47,8 @@ public class AudioRecognitionService {
         }
     }
 
-    // --- ЦИКЛ ПРОСЛУШИВАНИЯ БЕЗ ЛИШНИХ ЛОГОВ ---
-    // Изменили сигнатуру: убрали Model model из параметров, используем поле класса
+    // --- ЦИКЛ ПРОСЛУШИВАНИЯ (ИСПРАВЛЕННЫЙ) ---
     public void listenLoop(InputStream audioStream) {
-        // Используем здесь this.model
         try (Recognizer recognizer = new Recognizer(this.model, 16000f)) {
             byte[] buffer = new byte[4096];
             int bytesRead;
@@ -67,16 +56,15 @@ public class AudioRecognitionService {
             System.out.println("=== [VOSK] Бесконечный поток прослушивания запущен ===");
 
             while ((bytesRead = audioStream.read(buffer)) != -1) {
+                // acceptWaveForm возвращает true, когда пользователь сделал паузу (конец фразы)
                 if (recognizer.acceptWaveForm(buffer, bytesRead)) {
                     String resultJson = recognizer.getResult();
                     String cleanText = parseVoskText(resultJson);
 
-                    if (cleanText.isEmpty()) {
-                        continue;
+                    if (!cleanText.isEmpty()) {
+                        System.out.println("VOSK [Финальная фраза]: " + resultJson);
+                        processCommand(cleanText);
                     }
-
-                    System.out.println("VOSK [Финальная фраза]: " + resultJson);
-                    processCommand(cleanText);
                 }
             }
             System.out.println("=== [VOSK] Входной аудиопоток завершился (InputStream closed) ===");
@@ -86,77 +74,36 @@ public class AudioRecognitionService {
         }
     }
 
-    // --- ОБРАБОТКА КОМАНДЫ (ПРИНИМАЕТ ЧИСТЫЙ ТЕКСТ) ---
+    // --- ОБРАБОТКА КОМАНДЫ (БЕЗ ДУБЛИРОВАНИЯ И КОНФЛИКТОВ) ---
     private void processCommand(String cleanText) {
         System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
-        /*
-        // Проверяем триггер "сервер"
-        if (cleanText.contains(TRIGGER_WORD)) {
-            System.out.println("=== ТРИГГЕР [" + TRIGGER_WORD.toUpperCase() + "] НАЙДЕН! Воспроизвожу звук... ===");
-            playSystemBeep();
 
-            if (cleanText.contains("диск") || cleanText.contains("мест") || cleanText.contains("space")) {
-                // 1. Получаем сырую строку от сервиса
-                String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
-                System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
+        // Если в тексте есть триггер "сервер" и запрос про "диск"
+        if (cleanText.contains(TRIGGER_WORD) &&
+            (cleanText.contains("диск") || cleanText.contains("мест") || cleanText.contains("space"))) {
 
-                // 2. Выделяем доступное место для озвучки
-                String readableSpace = extractAvailableSpace(diskInfo);
+            // 1. Получаем сырую строку от сервиса df -h
+            String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
+            System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
 
-                // 3. Передаем реальные данные в голос
-                voiceOutputService.speak("Проверяю память. На основном диске свободно " + readableSpace);
-            }
+            // 2. Выделяем доступное место для озвучки (например: "855 гигабайт")
+            String readableSpace = extractAvailableSpace(diskInfo);
+
+            // 3. Отправляем ОДНУ склеенную фразу. Аудиокарта захватится корректно.
+            voiceOutputService.speak("Проверяю память. На основном диске свободно " + readableSpace);
         }
-        *///test
-         if (cleanText.contains("диск")) {
-            //playSystemBeep();
-            // 1. Получаем сырую строку от сервиса
-            //String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
-            //System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
-
-            // 2. Выделяем доступное место для озвучки
-            //String readableSpace = extractAvailableSpace(diskInfo);
-
-            // 3. Передаем реальные данные в голос
-            //voiceOutputService.speak("Проверяю память. На основном диске свободно " + readableSpace);
-            voiceOutputService.speak("Проверяю.");
-            voiceOutputService.speak("Проверяю2");
+        // Тестовый вариант (если проверяешь без слова "сервер")
+        else if (cleanText.contains("диск")) {
+            voiceOutputService.speak("Проверяю. На диске свободно.");
         }
-        // end test
     }
 
-    private void playSystemBeep() {
-        new Thread(() -> {
-            try {
-                // Загружаем wav-файл средствами Java
-                File soundFile = new File("/home/lysogorand/my-spring-app/mac_chime.wav");
+    // Полностью удалили проблемный playSystemBeep, так как он больше не нужен
 
-                if (!soundFile.exists()) {
-                    System.err.println("Файл mac_chime.wav не найден по пути: " + soundFile.getAbsolutePath());
-                    return;
-                }
-
-                try (AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile)) {
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(audioIn);
-                    clip.start();
-
-                    // Ждем пока звук доиграет (файл короткий, это не заблокирует Vosk, так как мы в новом потоке)
-                    Thread.sleep(clip.getMicrosecondLength() / 1000);
-                }
-            } catch (Exception e) {
-                System.err.println("Не удалось воспроизвести системный звук через Java Audio: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }).start();
-    }
-
-    // Вспомогательный интерфейс (если используется где-то вовне)
     public interface CommandListener {
         void onCommandReceived(String command);
     }
 
-    // Оригинальный парсер JSON
     private String parseVoskText(String json) {
         if (json == null || !json.contains("\"text\" : \"")) {
             return "";
@@ -168,7 +115,7 @@ public class AudioRecognitionService {
                 return json.substring(start, end).trim();
             }
         } catch (Exception e) {
-            // Игнорируем ошибки сдвига индексов
+            // Игнорируем
         }
         return "";
     }
@@ -178,15 +125,11 @@ public class AudioRecognitionService {
             return "неизвестно сколько гигабайт. Произошла ошибка.";
         }
 
-        // Разбиваем строку по любому количеству пробелов
         String[] parts = dfLine.split("\\s+");
 
-        // В стандартном выводе df -h:
-        // parts[0]=Filesystem, parts[1]=Size, parts[2]=Used, parts[3]=Avail
         if (parts.length >= 4) {
-            String rawSpace = parts[3]; // Например, "33G", "855G" или "1.2T"
+            String rawSpace = parts[3];
 
-            // Красивое приведение к русской речи
             if (rawSpace.endsWith("G")) {
                 return rawSpace.replace("G", "") + " гигабайт.";
             } else if (rawSpace.endsWith("M")) {
