@@ -5,6 +5,11 @@ import org.vosk.Recognizer;
 import org.springframework.stereotype.Service;
 import java.io.InputStream;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import java.io.File;
+
 @Service
 public class AudioRecognitionService {
 
@@ -120,22 +125,31 @@ public class AudioRecognitionService {
         // end test
     }
 
-   private void playSystemBeep() {
-       new Thread(() -> {
-           try {
-               // Использование ключа -D plughw:0,0 или плагина dmix напрямую в обход дефолтного канала
-               String[] command = {
-                   "/bin/sh",
-                   "-c",
-                   "aplay -D plughw:0,0 -q /home/lysogorand/my-spring-app/mac_chime.wav > /dev/null 2>&1"
-               };
-               Process process = Runtime.getRuntime().exec(command);
-               process.waitFor();
-           } catch (Exception e) {
-               System.err.println("Не удалось воспроизвести системный звук: " + e.getMessage());
-           }
-       }).start();
-   }
+    private void playSystemBeep() {
+        new Thread(() -> {
+            try {
+                // Загружаем wav-файл средствами Java
+                File soundFile = new File("/home/lysogorand/my-spring-app/mac_chime.wav");
+
+                if (!soundFile.exists()) {
+                    System.err.println("Файл mac_chime.wav не найден по пути: " + soundFile.getAbsolutePath());
+                    return;
+                }
+
+                try (AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile)) {
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(audioIn);
+                    clip.start();
+
+                    // Ждем пока звук доиграет (файл короткий, это не заблокирует Vosk, так как мы в новом потоке)
+                    Thread.sleep(clip.getMicrosecondLength() / 1000);
+                }
+            } catch (Exception e) {
+                System.err.println("Не удалось воспроизвести системный звук через Java Audio: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
+    }
 
     // Вспомогательный интерфейс (если используется где-то вовне)
     public interface CommandListener {
