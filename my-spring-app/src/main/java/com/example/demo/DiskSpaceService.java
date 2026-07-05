@@ -3,7 +3,9 @@ package com.example.demo;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.function.Function;
+import org.springframework.stereotype.Service;
 
+@Service
 public class DiskSpaceService implements Function<DiskSpaceService.Request, DiskSpaceService.Response> {
 
     // Описываем входные параметры для модели (даже если они пустые)
