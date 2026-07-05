@@ -8,19 +8,16 @@ import java.io.InputStream;
 @Service
 public class AudioRecognitionService {
 
+    private static final String TRIGGER_WORD = "сервер";
     private final VoiceOutputService voiceOutputService;
     private final DiskSpaceService diskSpaceService;
-    private final WeatherService weatherService; // ДОБАВИЛИ СЕРВИС ПОГОДЫ
     private final Model model;
     private volatile boolean isSpeaking = false;
 
-    // Внедряем WeatherService через конструктор
     public AudioRecognitionService(VoiceOutputService voiceOutputService,
-    DiskSpaceService diskSpaceService,
-    WeatherService weatherService) throws Exception {
+    DiskSpaceService diskSpaceService) throws Exception {
     this.voiceOutputService = voiceOutputService;
     this.diskSpaceService = diskSpaceService;
-    this.weatherService = weatherService;
     this.model = new Model("/home/lysogorand/my-spring-app/model-ru");
     System.out.println("VOSK: Модель готова!");
 }
@@ -33,6 +30,7 @@ public void listenLoop(InputStream audioStream) {
         System.out.println("=== [VOSK] Бесконечный поток прослушивания запущен ===");
 
         while ((bytesRead = audioStream.read(buffer)) != -1) {
+            // Если сервер говорит, просто сливаем входящий поток микрофона в пустоту
             if (isSpeaking) {
                 continue;
             }
@@ -43,6 +41,7 @@ public void listenLoop(InputStream audioStream) {
 
                 if (!cleanText.isEmpty()) {
                     System.out.println("VOSK [Финальная фраза]: " + resultJson);
+                    // ТЕПЕРЬ ПЕРЕДАЕМ НАШ RECOGNIZER внутрь обработки команды
                     processCommand(cleanText, recognizer, audioStream);
                 }
             }
@@ -57,6 +56,7 @@ public void listenLoop(InputStream audioStream) {
 private void processCommand(String cleanText, Recognizer recognizer, InputStream audioStream) {
     System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
+    // Флаг, определяющий, была ли найдена и выполнена команда
     boolean commandExecuted = false;
     String answerText = "";
 
@@ -65,56 +65,95 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
         commandExecuted = true;
         try {
             String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
+            System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
             String readableSpace = extractAvailableSpace(diskInfo);
             answerText = "Проверяю память. На основном диске свободно " + readableSpace;
         } catch (Exception e) {
-            answerText = "Не удалось проверить память.";
+            answerText = "Не удалось проверить память. Произошла ошибка.";
         }
     }
     // 2. КОМАНДА: ТЕКУЩЕЕ ВРЕМЯ
+    // 2. КОМАНДА: ТЕКУЩЕЕ ВРЕМЯ
     else if (cleanText.contains("время") || cleanText.contains("времени") || cleanText.contains("час")) {
         commandExecuted = true;
+
+        // Явно задаем часовой пояс Германии (Берлин/Тюбинген)
         java.time.ZoneId zoneId = java.time.ZoneId.of("Europe/Berlin");
         java.time.ZonedDateTime now = java.time.ZonedDateTime.now(zoneId);
+
         int hour = now.getHour();
         int minute = now.getMinute();
+
+        // Формируем человекочитаемый текст с правильными окончаниями
         answerText = "Сейчас " + hour + " " + getHourDeclension(hour) + " " + minute + " " + getMinuteDeclension(minute);
     }
-    // 3. НОВАЯ КОМАНДА: ПОГОДА НА УЛИЦЕ
-    else if (cleanText.contains("температура") || cleanText.contains("погода") || cleanText.contains("улице")) {
-        commandExecuted = true;
-        System.out.println("Java: Запрос погоды...");
-        String tempText = weatherService.getCurrentTemperature();
-        answerText = "На улице сейчас " + tempText;
-    }
 
-    // Блок выполнения команды и блокировки микрофона
+    // Если какая-то команда сработала, запускаем блокировку и озвучку
     if (commandExecuted) {
         isSpeaking = true;
         recognizer.reset();
 
         try {
+            // Озвучиваем сформированный текст
             voiceOutputService.speak(answerText);
+
+            // Пауза, чтобы звук затих в комнате
             Thread.sleep(1500);
 
+            // Очищаем сетевой буфер
             int availableBytes = audioStream.available();
             if (availableBytes > 0) {
                 byte[] wasteBuffer = new byte[availableBytes];
                 audioStream.read(wasteBuffer);
             }
 
+            // Слепая зона для Vosk (тишина)
             byte[] silence = new byte[3200];
             recognizer.acceptWaveForm(silence, silence.length);
             recognizer.getResult();
 
         } catch (Exception e) {
             System.err.println("Ошибка при выполнении голосовой команды: " + e.getMessage());
-        } finaly {
+        } finally {
             recognizer.reset();
             isSpeaking = false;
             System.out.println("=== Голосовой ответ завершен. Vosk снова слушает микрофон ===");
         }
     }
+}
+
+// Вспомогательный метод для склонения часов
+private String getHourDeclension(int hour) {
+    int remainder = hour % 10;
+    int remainder100 = hour % 100;
+
+    if (remainder100 >= 11 && remainder100 <= 19) {
+        return "часов";
+    }
+    if (remainder == 1) {
+        return "час";
+    }
+    if (remainder >= 2 && remainder <= 4) {
+        return "часа";
+    }
+    return "часов";
+}
+
+// Вспомогательный метод для склонения минут
+private String getMinuteDeclension(int minute) {
+    int remainder = minute % 10;
+    int remainder100 = minute % 100;
+
+    if (remainder100 >= 11 && remainder100 <= 19) {
+        return "минут";
+    }
+    if (remainder == 1) {
+        return "минута";
+    }
+    if (remainder >= 2 && remainder <= 4) {
+        return "минуты";
+    }
+    return "минут";
 }
 
 private String parseVoskText(String json) {
@@ -127,38 +166,27 @@ private String parseVoskText(String json) {
         if (start > 9 && end > start) {
             return json.substring(start, end).trim();
         }
-    } catch (Exception e) { }
+    } catch (Exception e) {
+        // Игнорируем
+    }
     return "";
-}
-
-private String getHourDeclension(int hour) {
-    int remainder = hour % 10;
-    int remainder100 = hour % 100;
-    if (remainder100 >= 11 && remainder100 <= 19) return "часов";
-    if (remainder == 1) return "час";
-    if (remainder >= 2 && remainder <= 4) return "часа";
-    return "часов";
-}
-
-private String getMinuteDeclension(int minute) {
-    int remainder = minute % 10;
-    int remainder100 = minute % 100;
-    if (remainder100 >= 11 && remainder100 <= 19) return "минут";
-    if (remainder == 1) return "минута";
-    if (remainder >= 2 && remainder <= 4) return "минуты";
-    return "минут";
 }
 
 private String extractAvailableSpace(String dfLine) {
     if (dfLine == null || dfLine.isEmpty() || dfLine.startsWith("Ошибка")) {
-        return "неизвестно сколько гигабайт.";
+        return "неизвестно сколько гигабайт. Произошла ошибка.";
     }
+
     String[] parts = dfLine.split("\\s+");
     if (parts.length >= 4) {
         String rawSpace = parts[3];
-        if (rawSpace.endsWith("G")) return rawSpace.replace("G", "") + " гигабайт.";
-        if (rawSpace.endsWith("M")) return rawSpace.replace("M", "") + " мегабайт.";
-        if (rawSpace.endsWith("T")) return rawSpace.replace("T", "") + " терабайт.";
+        if (rawSpace.endsWith("G")) {
+            return rawSpace.replace("G", "") + " гигабайт.";
+        } else if (rawSpace.endsWith("M")) {
+            return rawSpace.replace("M", "") + " мегабайт.";
+        } else if (rawSpace.endsWith("T")) {
+            return rawSpace.replace("T", "") + " терабайт.";
+        }
         return rawSpace;
     }
     return "не удалось определить.";
