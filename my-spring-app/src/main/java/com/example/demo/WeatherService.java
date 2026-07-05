@@ -29,12 +29,25 @@ public class WeatherService {
 
             // Парсим JSON ответ
             JsonNode root = objectMapper.readTree(response);
-            double temp = root.path("main").path("temp").asDouble();
 
-            // Округляем до целого числа для красивой озвучки
+            // 1. Достаем температуру
+            double temp = root.path("main").path("temp").asDouble();
             int roundedTemp = (int) Math.round(temp);
 
-            return roundedTemp + " " + getTemperatureDeclension(roundedTemp);
+            // 2. Достаем описание погоды (из массива weather[0].description)
+            String description = "";
+            JsonNode weatherNode = root.path("weather");
+            if (weatherNode.isArray() && !weatherNode.isEmpty()) {
+                description = weatherNode.get(0).path("description").asText();
+            }
+
+            // Формируем красивый ответ. Например: "14 градусов, дождь"
+            if (!description.isEmpty()) {
+                return roundedTemp + " " + getTemperatureDeclension(roundedTemp) + ", " + description;
+            } else {
+                return roundedTemp + " " + getTemperatureDeclension(roundedTemp);
+            }
+
         } catch (Exception e) {
             System.err.println("Ошибка получения погоды: " + e.getMessage());
             return "неизвестно сколько градусов. Не удалось связаться с метеослужбой.";
