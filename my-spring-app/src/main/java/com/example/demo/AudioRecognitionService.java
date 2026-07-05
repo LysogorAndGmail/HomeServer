@@ -123,11 +123,11 @@ public class AudioRecognitionService {
             new Thread(() -> {
                 try {
                     // Меняем "-D default" на "-D plug:dmix", чтобы не было ошибки Device or resource busy
-                    String[] command = {
-                        "/bin/sh",
-                        "-c",
-                        "aplay -D plughw:0,0 -q /home/lysogorand/my-spring-app/mac_chime.wav > /dev/null 2>&1"
-                    };
+                   String[] command = {
+                       "/bin/sh",
+                       "-c",
+                       "alsaplayer -i text -d plug:dmix /home/lysogorand/my-spring-app/mac_chime.wav > /dev/null 2>&1"
+                   };
                     Process process = Runtime.getRuntime().exec(command);
                     process.waitFor();
                 } catch (Exception e) {
