@@ -12,6 +12,7 @@ public class AudioRecognitionService {
     private final VoiceOutputService voiceOutputService;
     private final DiskSpaceService diskSpaceService;
     private final Model model;
+    private volatile boolean isSpeaking = false;
 
     public AudioRecognitionService(VoiceOutputService voiceOutputService,
     DiskSpaceService diskSpaceService) throws Exception {
@@ -47,56 +48,70 @@ public class AudioRecognitionService {
         }
     }
 
-    // --- ЦИКЛ ПРОСЛУШИВАНИЯ (ИСПРАВЛЕННЫЙ) ---
-    public void listenLoop(InputStream audioStream) {
-        try (Recognizer recognizer = new Recognizer(this.model, 16000f)) {
-            byte[] buffer = new byte[4096];
-            int bytesRead;
+// 2. Обнови цикл прослушивания listenLoop, чтобы он пропускал обработку, пока мы говорим:
+public void listenLoop(InputStream audioStream) {
+    try (Recognizer recognizer = new Recognizer(this.model, 16000f)) {
+        byte[] buffer = new byte[4096];
+        int bytesRead;
 
-            System.out.println("=== [VOSK] Бесконечный поток прослушивания запущен ===");
+        System.out.println("=== [VOSK] Бесконечный поток прослушивания запущен ===");
 
-            while ((bytesRead = audioStream.read(buffer)) != -1) {
-                // acceptWaveForm возвращает true, когда пользователь сделал паузу (конец фразы)
-                if (recognizer.acceptWaveForm(buffer, bytesRead)) {
-                    String resultJson = recognizer.getResult();
-                    String cleanText = parseVoskText(resultJson);
+        while ((bytesRead = audioStream.read(buffer)) != -1) {
+            // ЕСЛИ СЕРВЕР СЕЙЧАС ГОВОРЯЩИЙ, просто сливаем входящий поток микрофона в пустоту,
+            // чтобы освободить аудиокарту для aplay
+            if (isSpeaking) {
+                continue;
+            }
 
-                    if (!cleanText.isEmpty()) {
-                        System.out.println("VOSK [Финальная фраза]: " + resultJson);
-                        processCommand(cleanText);
-                    }
+            if (recognizer.acceptWaveForm(buffer, bytesRead)) {
+                String resultJson = recognizer.getResult();
+                String cleanText = parseVoskText(resultJson);
+
+                if (!cleanText.isEmpty()) {
+                    System.out.println("VOSK [Финальная фраза]: " + resultJson);
+                    processCommand(cleanText);
                 }
             }
-            System.out.println("=== [VOSK] Входной аудиопоток завершился (InputStream closed) ===");
-        } catch (Exception e) {
-            System.err.println("Ошибка в цикле прослушивания Vosk: " + e.getMessage());
-            e.printStackTrace();
         }
+        System.out.println("=== [VOSK] Входной аудиопоток завершился ===");
+    } catch (Exception e) {
+        System.err.println("Ошибка в цикле прослушивания Vosk: " + e.getMessage());
+        e.printStackTrace();
     }
+}
 
-    // --- ОБРАБОТКА КОМАНДЫ (БЕЗ ДУБЛИРОВАНИЯ И КОНФЛИКТОВ) ---
-    private void processCommand(String cleanText) {
-        System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
+// 3. Модифицируй processCommand, чтобы он управлял флагом и засыпал на время речи:
+private void processCommand(String cleanText) {
+    System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
-        // Если в тексте есть триггер "сервер" и запрос про "диск"
-        if (cleanText.contains(TRIGGER_WORD) &&
-            (cleanText.contains("диск") || cleanText.contains("мест") || cleanText.contains("space"))) {
+    // Проверяем "диск" или "мария" (Vosk услышал "мария диск" вместо "сервер")
+    if (cleanText.contains("диск") || cleanText.contains("мария")) {
 
-            // 1. Получаем сырую строку от сервиса df -h
+        // Включаем режим блокировки микрофона
+        isSpeaking = true;
+
+        try {
             String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
             System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
-
-            // 2. Выделяем доступное место для озвучки (например: "855 гигабайт")
             String readableSpace = extractAvailableSpace(diskInfo);
 
-            // 3. Отправляем ОДНУ склеенную фразу. Аудиокарта захватится корректно.
+            // Запускаем озвучку
             voiceOutputService.speak("Проверяю память. На основном диске свободно " + readableSpace);
-        }
-        // Тестовый вариант (если проверяешь без слова "сервер")
-        else if (cleanText.contains("диск")) {
-            voiceOutputService.speak("Проверяю. На диске свободно.");
+
+            // Важно! Нам нужно дать физически договорить плееру aplay.
+            // Засыпаем этот поток примерно на 4 секунды (пока играет фраза),
+            // в это время listenLoop будет пропускать чтение карты и ALSA освободится!
+            Thread.sleep(4000);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            // Выключаем блокировку, Vosk снова начнет слушать
+            isSpeaking = false;
+            System.out.println("=== Голосовой ответ завершен. Vosk снова слушает микрофон ===");
         }
     }
+}
 
     // Полностью удалили проблемный playSystemBeep, так как он больше не нужен
 
