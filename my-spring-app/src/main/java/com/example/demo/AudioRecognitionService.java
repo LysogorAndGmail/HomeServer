@@ -22,33 +22,6 @@ public class AudioRecognitionService {
     System.out.println("VOSK: Модель готова!");
 }
 
-    // --- СТАРЫЙ МЕТОД (ОСТАВЛЯЕМ КАК ЕСТЬ) ---
-    public String recognizeSpeech(InputStream inputStream, Model model) throws Exception {
-        try (Recognizer recognizer = new Recognizer(model, 16000f)) {
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            StringBuilder resultSentence = new StringBuilder();
-
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                if (recognizer.acceptWaveForm(buffer, bytesRead)) {
-                    String partJson = recognizer.getResult();
-                    String partText = parseVoskText(partJson);
-                    if (!partText.isEmpty()) {
-                        resultSentence.append(partText).append(" ");
-                    }
-                }
-            }
-
-            String finalJson = recognizer.getFinalResult();
-            String finalLeftover = parseVoskText(finalJson);
-            if (!finalLeftover.isEmpty()) {
-                resultSentence.append(finalLeftover);
-            }
-            return resultSentence.toString().trim();
-        }
-    }
-
-// 2. Обнови цикл прослушивания listenLoop, чтобы он пропускал обработку, пока мы говорим:
 public void listenLoop(InputStream audioStream) {
     try (Recognizer recognizer = new Recognizer(this.model, 16000f)) {
         byte[] buffer = new byte[4096];
@@ -57,8 +30,7 @@ public void listenLoop(InputStream audioStream) {
         System.out.println("=== [VOSK] Бесконечный поток прослушивания запущен ===");
 
         while ((bytesRead = audioStream.read(buffer)) != -1) {
-            // ЕСЛИ СЕРВЕР СЕЙЧАС ГОВОРЯЩИЙ, просто сливаем входящий поток микрофона в пустоту,
-            // чтобы освободить аудиокарту для aplay
+            // Если сервер говорит, просто сливаем входящий поток микрофона в пустоту
             if (isSpeaking) {
                 continue;
             }
@@ -69,7 +41,8 @@ public void listenLoop(InputStream audioStream) {
 
                 if (!cleanText.isEmpty()) {
                     System.out.println("VOSK [Финальная фраза]: " + resultJson);
-                    processCommand(cleanText);
+                    // ТЕПЕРЬ ПЕРЕДАЕМ НАШ RECOGNIZER внутрь обработки команды
+                    processCommand(cleanText, recognizer);
                 }
             }
         }
@@ -80,79 +53,74 @@ public void listenLoop(InputStream audioStream) {
     }
 }
 
-// 3. Модифицируй processCommand, чтобы он управлял флагом и засыпал на время речи:
-private void processCommand(String cleanText) {
+private void processCommand(String cleanText, Recognizer recognizer) {
     System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
-    // Проверяем "диск" или "мария" (Vosk услышал "мария диск" вместо "сервер")
+    // Проверяем ключевые слова
     if (cleanText.contains("диск") || cleanText.contains("мария")) {
 
-        // Включаем режим блокировки микрофона
+        // 1. Включаем блокировку микрофона
         isSpeaking = true;
+
+        // 2. ЖЕСТКИЙ СБРОС БУФЕРА VOSK: стираем всё, что микрофон мог успеть подслушать
+        recognizer.reset();
 
         try {
             String diskInfo = diskSpaceService.apply(new DiskSpaceService.Request("")).diskInfo();
             System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
             String readableSpace = extractAvailableSpace(diskInfo);
 
-            // Запускаем озвучку
+            // Запускаем озвучку через aplay
             voiceOutputService.speak("Проверяю память. На основном диске свободно " + readableSpace);
 
-            // Важно! Нам нужно дать физически договорить плееру aplay.
-            // Засыпаем этот поток примерно на 4 секунды (пока играет фраза),
-            // в это время listenLoop будет пропускать чтение карты и ALSA освободится!
-            Thread.sleep(4000);
+            // Увеличиваем паузу до 5.5 секунд, чтобы фраза точно успела доиграть,
+            // и звук из динамиков полностью затих в комнате.
+            Thread.sleep(5500);
 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            // Выключаем блокировку, Vosk снова начнет слушать
+            // 3. Снова сбрасываем буфер прямо перед включением, чтобы остаточное эхо не распозналось
+            recognizer.reset();
             isSpeaking = false;
             System.out.println("=== Голосовой ответ завершен. Vosk снова слушает микрофон ===");
         }
     }
 }
 
-    public interface CommandListener {
-        void onCommandReceived(String command);
-    }
-
-    private String parseVoskText(String json) {
-        if (json == null || !json.contains("\"text\" : \"")) {
-            return "";
-        }
-        try {
-            int start = json.indexOf("\"text\" : \"") + 10;
-            int end = json.indexOf("\"", start);
-            if (start > 9 && end > start) {
-                return json.substring(start, end).trim();
-            }
-        } catch (Exception e) {
-            // Игнорируем
-        }
+private String parseVoskText(String json) {
+    if (json == null || !json.contains("\"text\" : \"")) {
         return "";
     }
-
-    private String extractAvailableSpace(String dfLine) {
-        if (dfLine == null || dfLine.isEmpty() || dfLine.startsWith("Ошибка")) {
-            return "неизвестно сколько гигабайт. Произошла ошибка.";
+    try {
+        int start = json.indexOf("\"text\" : \"") + 10;
+        int end = json.indexOf("\"", start);
+        if (start > 9 && end > start) {
+            return json.substring(start, end).trim();
         }
-
-        String[] parts = dfLine.split("\\s+");
-
-        if (parts.length >= 4) {
-            String rawSpace = parts[3];
-
-            if (rawSpace.endsWith("G")) {
-                return rawSpace.replace("G", "") + " гигабайт.";
-            } else if (rawSpace.endsWith("M")) {
-                return rawSpace.replace("M", "") + " мегабайт.";
-            } else if (rawSpace.endsWith("T")) {
-                return rawSpace.replace("T", "") + " терабайт.";
-            }
-            return rawSpace;
-        }
-
-        return "не удалось определить.";
+    } catch (Exception e) {
+        // Игнорируем
     }
+    return "";
+}
+
+private String extractAvailableSpace(String dfLine) {
+    if (dfLine == null || dfLine.isEmpty() || dfLine.startsWith("Ошибка")) {
+        return "неизвестно сколько гигабайт. Произошла ошибка.";
+    }
+
+    String[] parts = dfLine.split("\\s+");
+    if (parts.length >= 4) {
+        String rawSpace = parts[3];
+        if (rawSpace.endsWith("G")) {
+            return rawSpace.replace("G", "") + " гигабайт.";
+        } else if (rawSpace.endsWith("M")) {
+            return rawSpace.replace("M", "") + " мегабайт.";
+        } else if (rawSpace.endsWith("T")) {
+            return rawSpace.replace("T", "") + " терабайт.";
+        }
+        return rawSpace;
+    }
+    return "не удалось определить.";
+}
 }
