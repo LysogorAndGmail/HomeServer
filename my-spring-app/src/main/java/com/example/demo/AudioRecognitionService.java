@@ -113,8 +113,6 @@ private void processCommand(String cleanText) {
     }
 }
 
-    // Полностью удалили проблемный playSystemBeep, так как он больше не нужен
-
     public interface CommandListener {
         void onCommandReceived(String command);
     }
