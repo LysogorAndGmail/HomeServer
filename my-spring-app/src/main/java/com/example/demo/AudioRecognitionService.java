@@ -53,16 +53,12 @@ public void listenLoop(InputStream audioStream) {
     }
 }
 
-private void processCommand(String cleanText, Recognizer recognizer) {
+private void processCommand(String cleanText, Recognizer recognizer, InputStream audioStream) {
     System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
-    // Проверяем ключевые слова
-    if (cleanText.contains("диск") || cleanText.contains("мария")) {
-
-        // 1. Включаем блокировку микрофона
+    if (cleanText.contains("диsk") || cleanText.contains("диск") || cleanText.contains("мария")) {
+        // 1. Блокируем обработку
         isSpeaking = true;
-
-        // 2. ЖЕСТКИЙ СБРОС БУФЕРА VOSK: стираем всё, что микрофон мог успеть подслушать
         recognizer.reset();
 
         try {
@@ -70,17 +66,33 @@ private void processCommand(String cleanText, Recognizer recognizer) {
             System.out.println("СЕРВЕР ОТВЕЧАЕТ НА СИС-КОМАНДУ:\n" + diskInfo);
             String readableSpace = extractAvailableSpace(diskInfo);
 
-            // Запускаем озвучку через aplay
+            // 2. Синхронно проговариваем фразу (Java честно ждет здесь окончания aplay)
             voiceOutputService.speak("Проверяю память. На основном диске свободно " + readableSpace);
 
-            // Увеличиваем паузу до 5.5 секунд, чтобы фраза точно успела доиграть,
-            // и звук из динамиков полностью затих в комнате.
-            Thread.sleep(5500);
+            // Небольшая пауза, чтобы акустическое эхо в комнате физически затихло
+            Thread.sleep(1000);
 
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            // 3. УНИЧТОЖАЕМ ХВОСТЫ БУФЕРА
+            // Читаем всё, что прямо сейчас доступно в потоке Java
+            int availableBytes = audioStream.available();
+            if (availableBytes > 0) {
+                byte[] wasteBuffer = new byte[availableBytes];
+                audioStream.read(wasteBuffer);
+            }
+
+            // 4. ДЕЛАЕМ СЛЕПУЮ ЗОНУ ДЛЯ VOSK
+            // Скормим распознавателю пустую тишину (нули), чтобы принудительно
+            // закрыть текущую фразу, если туда успел прорваться кусок звука динамика
+            byte[] silence = new byte[3200]; // ~0.1 секунды чистой тишины для 16кГц
+            recognizer.acceptWaveForm(silence, silence.length);
+
+            // Забираем промежуточный результат, тем самым полностью очищая внутренний стек Vosk
+            recognizer.getResult();
+
+        } catch (Exception e) {
+            System.err.println("Ошибка при озвучке: " + e.getMessage());
         } finally {
-            // 3. Снова сбрасываем буфер прямо перед включением, чтобы остаточное эхо не распозналось
+            // 5. Окончательный сброс и открытие микрофона
             recognizer.reset();
             isSpeaking = false;
             System.out.println("=== Голосовой ответ завершен. Vosk снова слушает микрофон ===");
