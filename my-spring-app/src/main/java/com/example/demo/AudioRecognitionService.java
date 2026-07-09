@@ -9,6 +9,7 @@ import java.io.InputStream;
 public class AudioRecognitionService {
 
     private final VoiceOutputService voiceOutputService;
+    private final VoiceOutputServiceEST voiceOutputServiceEST;
     private final DiskSpaceService diskSpaceService;
     private final WeatherService weatherService; // ДОБАВИЛИ СЕРВИС ПОГОДЫ
     private final Model model;
@@ -16,9 +17,11 @@ public class AudioRecognitionService {
 
     // Внедряем WeatherService через конструктор
     public AudioRecognitionService(VoiceOutputService voiceOutputService,
+    VoiceOutputServiceEST voiceOutputServiceEST,
     DiskSpaceService diskSpaceService,
     WeatherService weatherService) throws Exception {
     this.voiceOutputService = voiceOutputService;
+    this.voiceOutputServiceEST = voiceOutputServiceEST;
     this.diskSpaceService = diskSpaceService;
     this.weatherService = weatherService;
     this.model = new Model("/home/lysogorand/my-spring-app/model-ru");
@@ -58,6 +61,7 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
     System.out.println("=== ОБРАБОТКА ТЕКСТА: [" + cleanText + "] ===");
 
     boolean commandExecuted = false;
+    boolean EST = false;
     String answerText = "";
 
     // 1. КОМАНДА: ПРОВЕРКА ДИСКА
@@ -82,6 +86,7 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
     }
     // 3. НОВАЯ КОМАНДА: ПОГОДА НА УЛИЦЕ
     else if (cleanText.contains("какая погода")) {
+        EST = true;
         commandExecuted = true;
         System.out.println("Java: Запрос погоды...");
         String tempText = weatherService.getCurrentTemperature();
@@ -94,7 +99,13 @@ private void processCommand(String cleanText, Recognizer recognizer, InputStream
         recognizer.reset();
 
         try {
-            voiceOutputService.speak(answerText);
+            if(EST){
+                voiceOutputServiceEST.speak(answerText);
+                EST = false;
+            }else{
+                voiceOutputService.speak(answerText);
+            }
+
             Thread.sleep(1500);
 
             int availableBytes = audioStream.available();

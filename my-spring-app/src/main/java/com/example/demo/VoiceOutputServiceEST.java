@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class VoiceOutputService {
+public class VoiceOutputServiceEST {
 
     public void speak(String text) {
         if (text == null || text.trim().isEmpty()) {
