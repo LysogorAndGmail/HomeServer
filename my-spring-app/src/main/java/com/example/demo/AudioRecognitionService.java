@@ -126,7 +126,7 @@ public class AudioRecognitionService {
                     List<Message> newHistory = new ArrayList<>();
                     String systemInstructions =
                         "Ты — AI-агент домашнего сервера HomeServe на Ubuntu Server. Твой хозяин — lysogorand.\n" +
-                        "Отвечай ОЧЕНЬ кратко (1-2 предложения максимум), вежливо и технически точно. Твой ответ будет озвучен голосом.";
+                        "Отвечай ОЧЕНЬ кратко (1-5 предложения максимум), вежливо и технически точно. Твой ответ будет озвучен голосом.";
                     newHistory.add(new SystemMessage(systemInstructions));
                     return newHistory;
                 });
