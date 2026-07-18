@@ -239,6 +239,37 @@ const cabinBrightness = ref(150);
 const cabinColor = ref('#FFF59D'); // Браузерный инпут цвета отлично работает с HEX
 const cabinDuration = ref(5000);
 
+const CabinOn = async () => {
+  try {
+    // Шлём запрос на свой бэкенд, а не на плату напрямую
+    const response = await api.post('/api/mrija/cabinOn', null, {
+      params: {
+        cabinBrightness: cabinBrightness.value,
+        cabinColor: cabinColor.value,
+        cabinDuration: cabinDuration.value
+      }
+    });
+    recordsText.value = `Mrija Ответ: ${response.data}`;
+  } catch (e) {
+    recordsText.value = 'Ошибка бэкенда при включении Cabine Mrija';
+  }
+};
+
+const CabinOff = async () => {
+  try {
+    recordsText.value = 'Отправка команды на otkluchenie cabine...';
+    const response = await api.post('/api/mrija/cabinOff', null, {
+      params: {
+        cabinDuration: cabinDuration.value
+      }
+    });
+    recordsText.value = `Mrija Ответ: ${response.data}`;
+  } catch (e) {
+    recordsText.value = 'Ошибка бэкенда при vikluchenii Cabine Mrija';
+    console.error(e);
+  }
+};
+
 onMounted(() => {
   //getJavaData(); for now 
   loadData();
