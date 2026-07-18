@@ -698,4 +698,8 @@ h2 {
 .radio_value {
   margin-bottom: 17px;
 }
+
+.form-control-color {
+  width: 50px;
+}
 </style>
