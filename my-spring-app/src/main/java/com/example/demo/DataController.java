@@ -247,4 +247,102 @@ public ResponseEntity<String> turnOffMrijaRadio(
         return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
     }
 }
+
+@PostMapping("/mrija/cabinOn")
+public ResponseEntity<String> turnOnMrijaCabin(
+    @RequestParam(value = "cabinBrightness", required = false) Integer cabinBrightness,
+    @RequestParam(value = "cabinColor", required = false) String cabinColor,
+    @RequestParam(value = "cabinDuration", required = false) Integer cabinDuration,
+    @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+) {
+    String espUrl = "http://192.168.2.101/cabin/on";
+
+    if (cabinBrightness != null) {
+        espUrl += "?brightness=" + cabinBrightness+"&color="+cabinColor+"&duration="+cabinDuration;
+        System.out.println("Java: Получен параметр: " + cabinBrightness);
+    }
+
+    try {
+        System.out.println("Java: Отправка команды ONCabin на ESP32 по адресу: " + espUrl);
+        URL url = new URL(espUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setConnectTimeout(3000);
+        connection.setReadTimeout(3000);
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode == 200) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+        in.close();
+
+            System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+
+            if (ozvuchka != null && ozvuchka == 1) {
+                voiceOutputService.speak("Cabin включено");
+            }
+
+            return ResponseEntity.ok(response.toString());
+        } else {
+            System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
+            voiceOutputService.speak("Ошибка vkluchenija Cabin.");
+            return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+        }
+    } catch (Exception e) {
+        System.out.println("Java ОШИБКА: " + e.getMessage());
+        e.printStackTrace();
+        voiceOutputService.speak("Сбой сети. Cabin не запущен.");
+        return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+    }
+}
+
+@PostMapping("/mrija/cabinoff")
+public ResponseEntity<String> turnOffMrijaRadio(
+    @RequestParam(value = "cabinDuration", required = false) Integer cabinDuration,
+    @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+) {
+    String espUrl = "http://192.168.2.101/cabin/off";
+
+    if (cabinDuration != null) {
+        espUrl += "?cabinDuration=" + cabinDuration;
+        System.out.println("Java: Получен параметр: " + cabinDuration);
+    }
+    try {
+        System.out.println("Java: Отправка команды OFF на ESP32...");
+        URL url = new URL(espUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setConnectTimeout(3000);
+        connection.setReadTimeout(3000);
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode == 200) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+        in.close();
+            System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+
+            if (ozvuchka != null && ozvuchka == 1) {
+                voiceOutputService.speak("Cabine выключено");
+            }
+
+            return ResponseEntity.ok(response.toString());
+        } else {
+            return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+        }
+    } catch (Exception e) {
+        System.out.println("Java ОШИБКА: " + e.getMessage());
+        e.printStackTrace();
+        return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+    }
+}
+
 }
