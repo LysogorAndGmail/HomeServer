@@ -266,6 +266,62 @@ onMounted(() => {
           </button>
         </div>
       </div>
+
+
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Mrija Cabin Light</h1>
+        <div class="btn-toolbar mb-2 mb-md-0 align-items-center gap-2">
+          <!-- Яркость -->
+          <div class="d-flex align-items-center me-2">
+            <label for="cabinBrightness" class="form-label mb-0 me-2 text-nowrap">Яркость: {{ cabinBrightness }}</label>
+            <input
+                v-model.number="cabinBrightness"
+                type="range"
+                class="form-range"
+                min="0"
+                max="255"
+                step="5"
+                id="cabinBrightness"
+                style="width: 120px;"
+            >
+          </div>
+
+          <!-- Выбор цвета -->
+          <div class="d-flex align-items-center me-2">
+            <label for="cabinColor" class="form-label mb-0 me-2 text-nowrap">Цвет:</label>
+            <input
+                v-model="cabinColor"
+                type="color"
+                class="form-control form-control-color form-control-sm"
+                id="cabinColor"
+                title="Выберите цвет подсветки"
+            >
+          </div>
+
+          <!-- Длительность -->
+          <div class="d-flex align-items-center me-2">
+            <label for="cabinDuration" class="form-label mb-0 me-2 text-nowrap">Плавность (мс):</label>
+            <input
+                v-model.number="cabinDuration"
+                type="number"
+                class="form-control form-control-sm"
+                id="cabinDuration"
+                min="0"
+                step="500"
+                style="width: 90px;"
+            >
+          </div>
+
+          <!-- Кнопки управления -->
+          <button type="button" class="btn btn-sm btn-success" @click="CabinOn">
+            Включить 💡
+          </button>
+          <button type="button" class="btn btn-sm btn-danger" @click="CabinOff">
+            Выключить ✖
+          </button>
+        </div>
+      </div>
+
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Mrija Radio</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
