@@ -246,7 +246,8 @@ const CabinOn = async () => {
       params: {
         cabinBrightness: cabinBrightness.value,
         cabinColor: cabinColor.value,
-        cabinDuration: cabinDuration.value
+        cabinDuration: cabinDuration.value,
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
@@ -260,7 +261,8 @@ const CabinOff = async () => {
     recordsText.value = 'Отправка команды на otkluchenie cabine...';
     const response = await api.post('/api/mrija/cabinOff', null, {
       params: {
-        cabinDuration: cabinDuration.value
+        cabinDuration: cabinDuration.value,
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
       }
     });
     recordsText.value = `Mrija Ответ: ${response.data}`;
