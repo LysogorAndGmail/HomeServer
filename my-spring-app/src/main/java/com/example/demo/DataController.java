@@ -257,10 +257,10 @@ public ResponseEntity<String> turnOnMrijaCabin(
 ) {
     String espUrl = "http://192.168.2.101/cabin/on";
 
-    if (cabinBrightness != null) {
+    //if (cabinBrightness != null) {
         espUrl += "?brightness=" + cabinBrightness+"&color="+cabinColor+"&duration="+cabinDuration;
         System.out.println("Java: Получен параметр: " + cabinBrightness);
-    }
+    //}
 
     try {
         System.out.println("Java: Отправка команды ONCabin на ESP32 по адресу: " + espUrl);
