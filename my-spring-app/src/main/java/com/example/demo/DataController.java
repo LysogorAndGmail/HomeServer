@@ -251,22 +251,32 @@ public ResponseEntity<String> turnOffMrijaRadio(
 @PostMapping("/mrija/cabinOn")
 public ResponseEntity<String> turnOnMrijaCabin(
     @RequestParam(value = "cabinBrightness", required = false) Integer cabinBrightness,
-    @RequestParam(value = "cabinColor", required = false) String cabinColor,
-    @RequestParam(value = "cabinDuration", required = false) Integer cabinDuration,
-    @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+@RequestParam(value = "cabinColor", required = false) String cabinColor,
+@RequestParam(value = "cabinDuration", required = false) Integer cabinDuration,
+@RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
 ) {
-    String espUrl = "http://192.168.2.101/cabin/on";
+    // 1. Задаем базовые дефолты на стороне Java, если с фронта что-то пришло null
+    int brightness = (cabinBrightness != null) ? cabinBrightness : 150;
+    int duration = (cabinDuration != null) ? cabinDuration : 0;
 
-    //if (cabinBrightness != null) {
-        espUrl += "?brightness=" + cabinBrightness+"&color="+cabinColor+"&duration="+cabinDuration;
-        System.out.println("Java: Получен параметр: " + cabinBrightness);
-    //}
+    // 2. Защита от решетки в цвете (#f11e3d или %23f11e3d)
+    String cleanColor = "FFF59D"; // дефолт
+    if (cabinColor != null && !cabinColor.isEmpty()) {
+        // Убираем решетку и пробелы, если фронт их прислал
+        cleanColor = cabinColor.replace("#", "").replace("%23", "").trim();
+    }
+
+    // 3. Собираем чистый URL для ESP32
+    String espUrl = String.format("http://192.168.2.101/cabin/on?brightness=%d&color=%s&duration=%d",
+        brightness, cleanColor, duration);
 
     try {
         System.out.println("Java: Отправка команды ONCabin на ESP32 по адресу: " + espUrl);
         URL url = new URL(espUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
+
+        // ESP32 WebServer с параметрами ?param=val лучше всего дергать через GET
+        connection.setRequestMethod("GET");
         connection.setConnectTimeout(3000);
         connection.setReadTimeout(3000);
 
