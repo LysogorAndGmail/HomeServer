@@ -248,7 +248,7 @@ public ResponseEntity<String> turnOffMrijaRadio(
     }
 }
 
-@PostMapping("/mrija/cabinOn")
+@GetMapping("/mrija/cabinOn")
 public ResponseEntity<String> turnOnMrijaCabin(
     @RequestParam(value = "cabinBrightness", required = false) Integer cabinBrightness,
     @RequestParam(value = "cabinColor", required = false) String cabinColor,
@@ -300,7 +300,7 @@ public ResponseEntity<String> turnOnMrijaCabin(
     }
 }
 
-@PostMapping("/mrija/cabinoff")
+@PostMapping("/mrija/cabinOff")
 public ResponseEntity<String> turnOffMrijaRadio(
     @RequestParam(value = "cabinDuration", required = false) Integer cabinDuration,
     @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
