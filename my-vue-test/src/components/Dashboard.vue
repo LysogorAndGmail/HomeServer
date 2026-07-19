@@ -1,6 +1,6 @@
 <script setup>
 import AdminLayout from './AdminLayout.vue'
-import MrijaControl from '@/components/MrijaControl.vue'
+import MrijaControl from './components/MrijaControl.vue'
 import ApiLogsManager from '@/components/ApiLogsManager.vue'
 import AiAgentConsole from '@/components/AiAgentConsole.vue'
 </script>
