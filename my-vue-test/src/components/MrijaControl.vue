@@ -170,3 +170,9 @@ const BlickOff = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.form-control-color {
+  width: 50px;
+}
+</style>
