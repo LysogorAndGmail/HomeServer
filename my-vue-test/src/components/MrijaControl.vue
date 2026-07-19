@@ -211,6 +211,17 @@ const DHOOff = async () => {
       </div>
     </div>
 
+    <!-- Radio -->
+    <div class="card p-3 mb-3 shadow-sm">
+      <h5>Mrija Radio</h5>
+      <div class="d-flex align-items-center gap-3">
+        <label class="text-nowrap">Gromkost: {{ radioVolume }}</label>
+        <input v-model.number="radioVolume" @change="RadioOnVolume" type="range" class="form-range w-25" min="0" max="21" step="3">
+        <button type="button" class="btn btn-sm btn-primary" @click="RadioOn">Start radio 🚀</button>
+        <button type="button" class="btn btn-sm btn-info text-white" @click="RadioOff">Stop radio 🛑</button>
+      </div>
+    </div>
+
     <!-- Cabin Light -->
     <div class="card p-3 mb-3 shadow-sm">
       <h5>Mrija Cabin Light</h5>
@@ -229,17 +240,6 @@ const DHOOff = async () => {
         </div>
         <button type="button" class="btn btn-sm btn-success" @click="CabinOn">Включить 💡</button>
         <button type="button" class="btn btn-sm btn-danger" @click="CabinOff">Выключить ✖</button>
-      </div>
-    </div>
-
-    <!-- Radio -->
-    <div class="card p-3 mb-3 shadow-sm">
-      <h5>Mrija Radio</h5>
-      <div class="d-flex align-items-center gap-3">
-        <label class="text-nowrap">Gromkost: {{ radioVolume }}</label>
-        <input v-model.number="radioVolume" @change="RadioOnVolume" type="range" class="form-range w-25" min="0" max="21" step="3">
-        <button type="button" class="btn btn-sm btn-primary" @click="RadioOn">Start radio 🚀</button>
-        <button type="button" class="btn btn-sm btn-info text-white" @click="RadioOff">Stop radio 🛑</button>
       </div>
     </div>
 
