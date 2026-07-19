@@ -13,9 +13,21 @@ const cabinDuration = ref(5000)
 // Состояния радио
 const radioVolume = ref(12)
 
-// Состояния огней
+// Состояния hvostovij огней
 const chastota = ref(11)
 const interval = ref(32)
+
+// Состояния Fuzilash огней
+const fChastota = ref(11)
+const fInterval = ref(32)
+
+// krilija
+const krilijaBrightness = ref(50)
+
+// Состояния DHO
+const dhoBrightness = ref(30)
+const dhoColor = ref('#f5ce0a')
+const dhoDuration = ref(5000)
 
 const statusText = ref('')
 
@@ -34,7 +46,6 @@ const CabinOn = async () => {
     statusText.value = 'Ошибка бэкенда при включении Cabine Mrija'
   }
 }
-
 const CabinOff = async () => {
   try {
     statusText.value = 'Отправка команды на otkluchenie cabine...'
@@ -63,11 +74,9 @@ const RadioOn = async () => {
     statusText.value = 'Ошибка бэкенда при включении Mrija'
   }
 }
-
 const RadioOnVolume = async () => {
   await RadioOn()
 }
-
 const RadioOff = async () => {
   try {
     statusText.value = 'Отправка команды на стоп...'
@@ -94,7 +103,6 @@ const BlickOn = async () => {
     statusText.value = 'Ошибка бэкенда при включении Mrija'
   }
 }
-
 const BlickOff = async () => {
   try {
     statusText.value = 'Отправка команды на стоп...'
@@ -104,6 +112,91 @@ const BlickOff = async () => {
     statusText.value = `Mrija Ответ: ${response.data}`
   } catch (e) {
     statusText.value = 'Ошибка бэкенда при выключении Mrija'
+  }
+}
+
+const FuzilashBlickOn = async () => {
+  try {
+    const response = await api.post('/api/mrija/fuzilashBlickOn', null, {
+      params: {
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0,
+        chastota: fChastota.value,
+        interval: fInterval.value
+      }
+    })
+    statusText.value = `Mrija Ответ: ${response.data}`
+  } catch (e) {
+    statusText.value = 'Ошибка бэкенда при включении Mrija'
+  }
+}
+const FuzilashBlickOff = async () => {
+  try {
+    statusText.value = 'Отправка команды на стоп...'
+    const response = await api.post('/api/mrija/fuzilashOff', null, {
+      params: { ozvuchka: isOzvuchkaEnabled.value ? 1 : 0 }
+    })
+    statusText.value = `Mrija Ответ: ${response.data}`
+  } catch (e) {
+    statusText.value = 'Ошибка бэкенда при выключении Mrija'
+  }
+}
+
+
+const KrilijaOn = async () => {
+  try {
+    const response = await api.post('/api/mrija/krilijaOn', null, {
+      params: {
+        krilijaBrightness: krilijaBrightness.value,
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
+      }
+    })
+    statusText.value = `Mrija Ответ: ${response.data}`
+  } catch (e) {
+    statusText.value = 'Ошибка бэкенда при включении Krilija Mrija'
+  }
+}
+const KrilijaOff = async () => {
+  try {
+    statusText.value = 'Отправка команды на otkluchenie cabine...'
+    const response = await api.post('/api/mrija/krilijaOff', null, {
+      params: {
+        krilijaBrightness: krilijaBrightness.value,
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
+      }
+    })
+    statusText.value = `Mrija Ответ: ${response.data}`
+  } catch (e) {
+    statusText.value = 'Ошибка бэкенда при vikluchenii Krilija Mrija'
+  }
+}
+
+const DHOOn = async () => {
+  try {
+    const response = await api.post('/api/mrija/dhoOn', null, {
+      params: {
+        dhoBrightness: dhoBrightness.value,
+        dhoColor: dhoColor.value,
+        dhoDuration: dhoDuration.value,
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
+      }
+    })
+    statusText.value = `Mrija Ответ: ${response.data}`
+  } catch (e) {
+    statusText.value = 'Ошибка бэкенда при включении DHO Mrija'
+  }
+}
+const DHOOff = async () => {
+  try {
+    statusText.value = 'Отправка команды на otkluchenie DHO...'
+    const response = await api.post('/api/mrija/dhoOff', null, {
+      params: {
+        dhoDuration: dhoDuration.value,
+        ozvuchka: isOzvuchkaEnabled.value ? 1 : 0
+      }
+    })
+    statusText.value = `Mrija Ответ: ${response.data}`
+  } catch (e) {
+    statusText.value = 'Ошибка бэкенда при vikluchenii DHO Mrija'
   }
 }
 </script>
@@ -124,15 +217,15 @@ const BlickOff = async () => {
       <div class="d-flex flex-wrap align-items-center gap-3">
         <div class="d-flex align-items-center">
           <label class="me-2 text-nowrap">Яркость: {{ cabinBrightness }}</label>
-          <input v-model.number="cabinBrightness" type="range" class="form-range" min="0" max="255" step="5" style="width: 120px;">
+          <input v-model.number="cabinBrightness" type="range" @change="CabinOn" class="form-range" min="0" max="255" step="5" style="width: 120px;">
         </div>
         <div class="d-flex align-items-center">
           <label class="me-2 text-nowrap">Цвет:</label>
-          <input v-model="cabinColor" type="color" class="form-control form-control-color form-control-sm">
+          <input v-model="cabinColor" type="color" @change="CabinOn" class="form-control form-control-color form-control-sm">
         </div>
         <div class="d-flex align-items-center">
           <label class="me-2 text-nowrap">Плавность (мс):</label>
-          <input v-model.number="cabinDuration" type="number" class="form-control form-control-sm" min="0" step="500" style="width: 90px;">
+          <input v-model.number="cabinDuration" type="number" @change="CabinOn" class="form-control form-control-sm" min="0" step="500" style="width: 90px;">
         </div>
         <button type="button" class="btn btn-sm btn-success" @click="CabinOn">Включить 💡</button>
         <button type="button" class="btn btn-sm btn-danger" @click="CabinOff">Выключить ✖</button>
@@ -150,9 +243,9 @@ const BlickOff = async () => {
       </div>
     </div>
 
-    <!-- Ogni -->
+    <!-- Hvost Ogni -->
     <div class="card p-3 mb-3 shadow-sm">
-      <h5>Mrija Ogni</h5>
+      <h5>Mrija Hvostovie Ogni</h5>
       <div class="d-flex flex-wrap align-items-center gap-3">
         <label>Chastota: {{ chastota }}</label>
         <input v-model.number="chastota" @change="BlickOn" type="range" class="form-range" min="1" max="100" style="width: 100px;">
@@ -162,6 +255,55 @@ const BlickOff = async () => {
 
         <button type="button" class="btn btn-sm btn-success" @click="BlickOn">Start Blick 🚀</button>
         <button type="button" class="btn btn-sm btn-danger" @click="BlickOff">Stop Blick 🛑</button>
+      </div>
+    </div>
+
+    <!-- Fuzilash Ogni -->
+    <div class="card p-3 mb-3 shadow-sm">
+      <h5>Mrija Fuzilash Ogni</h5>
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <label>Chastota: {{ fChastota }}</label>
+        <input v-model.number="fChastota" @change="FuzilashBlickOn" type="range" class="form-range" min="1" max="100" style="width: 100px;">
+
+        <label>Interval: {{ fInterval }}</label>
+        <input v-model.number="fInterval" @change="FuzilashBlickOn" type="range" class="form-range" min="1" max="100" style="width: 100px;">
+
+        <button type="button" class="btn btn-sm btn-success" @click="FuzilashBlickOn">Start Fuzilash Blick 🚀</button>
+        <button type="button" class="btn btn-sm btn-danger" @click="FuzilashBlickOff">Stop Fuzilash Blick 🛑</button>
+      </div>
+    </div>
+
+    <!-- Krilija -->
+    <div class="card p-3 mb-3 shadow-sm">
+      <h5>Mrija Krilija Ogni</h5>
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <div class="d-flex align-items-center">
+          <label class="me-2 text-nowrap">Яркость: {{ krilijaBrightness }}</label>
+          <input v-model.number="krilijaBrightness" type="range" @change="KrilijaOn" class="form-range" min="0" max="255" step="5" style="width: 120px;">
+        </div>
+        <button type="button" class="btn btn-sm btn-success" @click="KrilijaOn">Start Krilija Blick 🚀</button>
+        <button type="button" class="btn btn-sm btn-danger" @click="KrilijaOff">Stop Krilija Blick 🛑</button>
+      </div>
+    </div>
+
+    <!-- dho Light -->
+    <div class="card p-3 mb-3 shadow-sm">
+      <h5>Mrija DHO Light</h5>
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <div class="d-flex align-items-center">
+          <label class="me-2 text-nowrap">Яркость: {{ dhoBrightness }}</label>
+          <input v-model.number="dhoBrightness" type="range" @change="DHOOn" class="form-range" min="0" max="255" step="5" style="width: 120px;">
+        </div>
+        <div class="d-flex align-items-center">
+          <label class="me-2 text-nowrap">Цвет:</label>
+          <input v-model="dhoColor" type="color" @change="DHOOn" class="form-control form-control-color form-control-sm">
+        </div>
+        <div class="d-flex align-items-center">
+          <label class="me-2 text-nowrap">Плавность (мс):</label>
+          <input v-model.number="dhoDuration" type="number" @change="DHOOn" class="form-control form-control-sm" min="0" step="500" style="width: 90px;">
+        </div>
+        <button type="button" class="btn btn-sm btn-success" @click="DHOOn">Включить 💡</button>
+        <button type="button" class="btn btn-sm btn-danger" @click="DHOOff">Выключить ✖</button>
       </div>
     </div>
 
