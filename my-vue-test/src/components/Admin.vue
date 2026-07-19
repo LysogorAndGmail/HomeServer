@@ -235,7 +235,7 @@ const BlickOn = async () => {
   }
 };
 
-const cabinBrightness = ref(150);
+const cabinBrightness = ref(30);
 const cabinColor = ref('#f5ce0a'); // Браузерный инпут цвета отлично работает с HEX
 const cabinDuration = ref(5000);
 
