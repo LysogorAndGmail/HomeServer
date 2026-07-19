@@ -26,7 +26,7 @@ const krilijaBrightness = ref(50)
 
 // Состояния DHO
 const dhoBrightness = ref(30)
-const dhoColor = ref('#f5ce0a')
+const dhoColor = ref('#0a31f5')
 const dhoDuration = ref(5000)
 
 const statusText = ref('')
