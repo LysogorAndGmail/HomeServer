@@ -12,6 +12,7 @@ const handleHeaderLogout = () => {
   localStorage.removeItem('token') // Удаляем токен
   router.push('/login')            // Редиректим на логин
 }
+
 </script>
 
 <template>

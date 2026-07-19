@@ -1,51 +1,38 @@
+// /route/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import AdminLayout from '@/components/AdminLayout.vue' // Ваш шаблон с шапкой и сайдбаром
-import Admin from '@/components/Admin.vue'
+import AdminLayout from '@/components/AdminLayout.vue'
+import Dashboard from '@/components/Dashboard.vue' // 1. Импортируем новый Dashboard вместо Admin
 import Login from '@/components/Login.vue'
 import Projects from '@/components/Projects.vue'
 
-
 const routes = [
-  // 1. ОТКРЫТЫЕ МАРШРУТЫ (Доступны всем)
+  // 1. ОТКРЫТЫЕ МАРШРУТЫ
   {
     path: '/login',
     name: 'Login',
     component: Login
   },
 
-  // 2. ГРУППА ЗАЩИЩЕННЫХ МАРШРУТОВ (Нужна авторизация)
+  // 2. ГРУППА ЗАЩИЩЕННЫХ МАРШРУТОВ
   {
     path: '/',
-    component: AdminLayout,      // Переносим лейаут на уровень роутера!
-    meta: { requiresAuth: true }, // Защита применяется СРАЗУ ко всей группе
+    component: AdminLayout,
+    meta: { requiresAuth: true },
     children: [
       {
-        path: '',                 // Пустой путь означает главную страницу группы (т.е. просто "/")
+        path: '', // Главная страница админки (URL: /)
         name: 'Dashboard',
-        component: Admin
+        component: Dashboard // 2. Меняем компонент здесь
       },
       {
-        path: 'projects',
+        path: 'projects', // URL: /projects
         name: 'Projects',
         component: Projects
-      },
-
-     /* Пример, как легко добавлять новые страницы в админку в будущем:
-      {
-        path: 'users',            // URL будет: /users
-        name: 'Users',
-        component: Users
-      },
-      {
-        path: 'settings',         // URL будет: /settings
-        name: 'Settings',
-        component: Settings
       }
-     */
     ]
   },
 
-  // 3. ЛОВУШКА ДЛЯ ОШИБОК (Всегда в самом конце)
+  // 3. ЛОВУШКА ДЛЯ ОШИБОК
   {
     path: '/:pathMatch(.*)*',
     redirect: '/login'
@@ -53,26 +40,20 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(), // Используем чистые URL без решетки (например: /projects)
   routes,
   linkExactActiveClass: 'active'
 })
 
-// ГЛОБАЛЬНАЯ ПРОВЕРКА (Guard)
+// ГЛОБАЛЬНАЯ ПРОВЕРКА (Остается без изменений, она идеальна)
 router.beforeEach((to, from, next) => {
-  // Проверяем, сохранен ли JWT-токен в браузере
   const isAuthenticated = !!localStorage.getItem('token')
 
-  // Если страница требует авторизации, а токена нет — принудительно шлем на /login
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login')
-  }
-  // Если пользователь УЖЕ авторизован, но пытается зайти на форму логина — редиректим в админку
-  else if (to.path === '/login' && isAuthenticated) {
+  } else if (to.path === '/login' && isAuthenticated) {
     next('/')
-  }
-  // В остальных случаях — всё ок, пускаем дальше
-  else {
+  } else {
     next()
   }
 })
