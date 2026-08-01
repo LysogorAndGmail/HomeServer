@@ -357,7 +357,7 @@ public ResponseEntity<String> turnOffMrijaRadio(
 
     @PostMapping("/mrija/dhoOn")
     public ResponseEntity<String> turnOnMrijaDHO(
-        @RequestParam(value = "dhoBrightness", required = false) Integer dhoBrightness,
+    @RequestParam(value = "dhoBrightness", required = false) Integer dhoBrightness,
     @RequestParam(value = "dhoColor", required = false) String dhoColor,
     @RequestParam(value = "dhoDuration", required = false) Integer dhoDuration,
     @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
