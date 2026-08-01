@@ -59,7 +59,7 @@ public class MrijaControlController {
     }
 
     // --- fuzilash (Blick) ---
-    @PostMapping("/fuzilashOn")
+    @PostMapping("/fuzilashBlickOn")
     public ResponseEntity<String> turnOnFuzilash(
         @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka,
         @RequestParam(value = "chastota", required = false) Integer chastota,
