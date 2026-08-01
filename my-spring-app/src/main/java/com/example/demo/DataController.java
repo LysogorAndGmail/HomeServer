@@ -248,111 +248,218 @@ public ResponseEntity<String> turnOffMrijaRadio(
     }
 }
 
-@PostMapping("/mrija/cabinOn")
-public ResponseEntity<String> turnOnMrijaCabin(
-    @RequestParam(value = "cabinBrightness", required = false) Integer cabinBrightness,
-@RequestParam(value = "cabinColor", required = false) String cabinColor,
-@RequestParam(value = "cabinDuration", required = false) Integer cabinDuration,
-@RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
-) {
-    // 1. Задаем базовые дефолты на стороне Java, если с фронта что-то пришло null
-    int brightness = (cabinBrightness != null) ? cabinBrightness : 150;
-    int duration = (cabinDuration != null) ? cabinDuration : 0;
-
-    // 2. Защита от решетки в цвете (#f11e3d или %23f11e3d)
-    String cleanColor = "FFF59D"; // дефолт
-    if (cabinColor != null && !cabinColor.isEmpty()) {
-        // Убираем решетку и пробелы, если фронт их прислал
-        cleanColor = cabinColor.replace("#", "").replace("%23", "").trim();
-    }
-
-    // 3. Собираем чистый URL для ESP32
-    String espUrl = String.format("http://192.168.2.101/cabin/on?brightness=%d&color=%s&duration=%d",
-        brightness, cleanColor, duration);
-
-    try {
-        System.out.println("Java: Отправка команды ONCabin на ESP32 по адресу: " + espUrl);
-        URL url = new URL(espUrl);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        // ESP32 WebServer с параметрами ?param=val лучше всего дергать через GET
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(3000);
-        connection.setReadTimeout(3000);
-
-        int responseCode = connection.getResponseCode();
-        if (responseCode == 200) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-        in.close();
-
-            System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
-
-            if (ozvuchka != null && ozvuchka == 1) {
-                voiceOutputService.speak("Cabin включено");
-            }
-
-            return ResponseEntity.ok(response.toString());
-        } else {
-            System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
-            voiceOutputService.speak("Ошибка vkluchenija Cabin.");
-            return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
-        }
-    } catch (Exception e) {
-        System.out.println("Java ОШИБКА: " + e.getMessage());
-        e.printStackTrace();
-        voiceOutputService.speak("Сбой сети. Cabin не запущен.");
-        return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
-    }
-}
-
-@PostMapping("/mrija/cabinOff")
-public ResponseEntity<String> turnOffMrijaRadio(
+    @PostMapping("/mrija/cabinOn")
+    public ResponseEntity<String> turnOnMrijaCabin(
+        @RequestParam(value = "cabinBrightness", required = false) Integer cabinBrightness,
+    @RequestParam(value = "cabinColor", required = false) String cabinColor,
     @RequestParam(value = "cabinDuration", required = false) Integer cabinDuration,
     @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
-) {
-    String espUrl = "http://192.168.2.101/cabin/off";
+    ) {
+        // 1. Задаем базовые дефолты на стороне Java, если с фронта что-то пришло null
+        int brightness = (cabinBrightness != null) ? cabinBrightness : 150;
+        int duration = (cabinDuration != null) ? cabinDuration : 0;
 
-    if (cabinDuration != null) {
-        espUrl += "?cabinDuration=" + cabinDuration;
-        System.out.println("Java: Получен параметр: " + cabinDuration);
-    }
-    try {
-        System.out.println("Java: Отправка команды OFF на ESP32...");
-        URL url = new URL(espUrl);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setConnectTimeout(3000);
-        connection.setReadTimeout(3000);
-
-        int responseCode = connection.getResponseCode();
-        if (responseCode == 200) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-        in.close();
-            System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
-
-            if (ozvuchka != null && ozvuchka == 1) {
-                voiceOutputService.speak("Cabine выключено");
-            }
-
-            return ResponseEntity.ok(response.toString());
-        } else {
-            return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+        // 2. Защита от решетки в цвете (#f11e3d или %23f11e3d)
+        String cleanColor = "FFF59D"; // дефолт
+        if (cabinColor != null && !cabinColor.isEmpty()) {
+            // Убираем решетку и пробелы, если фронт их прислал
+            cleanColor = cabinColor.replace("#", "").replace("%23", "").trim();
         }
-    } catch (Exception e) {
-        System.out.println("Java ОШИБКА: " + e.getMessage());
-        e.printStackTrace();
-        return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+
+        // 3. Собираем чистый URL для ESP32
+        String espUrl = String.format("http://192.168.2.101/cabin/on?brightness=%d&color=%s&duration=%d",
+            brightness, cleanColor, duration);
+
+        try {
+            System.out.println("Java: Отправка команды ONCabin на ESP32 по адресу: " + espUrl);
+            URL url = new URL(espUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // ESP32 WebServer с параметрами ?param=val лучше всего дергать через GET
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+            in.close();
+
+                System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+
+                if (ozvuchka != null && ozvuchka == 1) {
+                    voiceOutputService.speak("Cabin включено");
+                }
+
+                return ResponseEntity.ok(response.toString());
+            } else {
+                System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
+                voiceOutputService.speak("Ошибка vkluchenija Cabin.");
+                return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+            }
+        } catch (Exception e) {
+            System.out.println("Java ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+            voiceOutputService.speak("Сбой сети. Cabin не запущен.");
+            return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+        }
     }
-}
+
+    @PostMapping("/mrija/cabinOff")
+    public ResponseEntity<String> turnOffMrijaRadio(
+        @RequestParam(value = "cabinDuration", required = false) Integer cabinDuration,
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+    ) {
+        String espUrl = "http://192.168.2.101/cabin/off";
+
+        if (cabinDuration != null) {
+            espUrl += "?cabinDuration=" + cabinDuration;
+            System.out.println("Java: Получен параметр: " + cabinDuration);
+        }
+        try {
+            System.out.println("Java: Отправка команды OFF на ESP32...");
+            URL url = new URL(espUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+            in.close();
+                System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+
+                if (ozvuchka != null && ozvuchka == 1) {
+                    voiceOutputService.speak("Cabine выключено");
+                }
+
+                return ResponseEntity.ok(response.toString());
+            } else {
+                return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+            }
+        } catch (Exception e) {
+            System.out.println("Java ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/mrija/dhoOn")
+    public ResponseEntity<String> turnOnMrijaDHO(
+        @RequestParam(value = "Brightness", required = false) Integer Brightness,
+    @RequestParam(value = "Color", required = false) String Color,
+    @RequestParam(value = "Duration", required = false) Integer Duration,
+    @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+    ) {
+        // 1. Задаем базовые дефолты на стороне Java, если с фронта что-то пришло null
+        int brightness = (Brightness != null) ? Brightness : 150;
+        int duration = (Duration != null) ? Duration : 0;
+
+        // 2. Защита от решетки в цвете (#f11e3d или %23f11e3d)
+        String cleanColor = "FFF59D"; // дефолт
+        if (Color != null && !Color.isEmpty()) {
+            // Убираем решетку и пробелы, если фронт их прислал
+            Color = Color.replace("#", "").replace("%23", "").trim();
+        }
+
+        // 3. Собираем чистый URL для ESP32
+        String espUrl = String.format("http://192.168.2.101/dho/on?brightness=%d&color=%s&duration=%d",
+            brightness, cleanColor, duration);
+
+        try {
+            System.out.println("Java: Отправка команды ONDHO на ESP32 по адресу: " + espUrl);
+            URL url = new URL(espUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // ESP32 WebServer с параметрами ?param=val лучше всего дергать через GET
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+            in.close();
+
+                System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+
+                if (ozvuchka != null && ozvuchka == 1) {
+                    voiceOutputService.speak("DHO включено");
+                }
+
+                return ResponseEntity.ok(response.toString());
+            } else {
+                System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
+                voiceOutputService.speak("Ошибка vkluchenija DHO.");
+                return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+            }
+        } catch (Exception e) {
+            System.out.println("Java ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+            voiceOutputService.speak("Сбой сети. DHO не запущен.");
+            return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/mrija/dhoOff")
+    public ResponseEntity<String> turnOffMrijaDHO(
+        @RequestParam(value = "Duration", required = false) Integer Duration,
+    @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
+    ) {
+        String espUrl = "http://192.168.2.101/dho/off";
+
+        if (Duration != null) {
+            espUrl += "?Duration=" + Duration;
+            System.out.println("Java: Получен параметр: " + Duration);
+        }
+        try {
+            System.out.println("Java: Отправка команды OFF на ESP32...");
+            URL url = new URL(espUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+            in.close();
+                System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
+
+                if (ozvuchka != null && ozvuchka == 1) {
+                    voiceOutputService.speak("DHO выключено");
+                }
+
+                return ResponseEntity.ok(response.toString());
+            } else {
+                return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
+            }
+        } catch (Exception e) {
+            System.out.println("Java ОШИБКА: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
+        }
+    }
 
 }
