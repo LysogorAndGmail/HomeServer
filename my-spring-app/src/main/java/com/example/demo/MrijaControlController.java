@@ -37,6 +37,48 @@ public class MrijaControlController {
         return executeCommand("/led/off", "POST", "Самолет завершил полёт", null, ozvuchka);
     }
 
+    // --- Krilija (Blick) ---
+    @PostMapping("/krilijaOn")
+    public ResponseEntity<String> turnOnKrilija(
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka,
+        @RequestParam(value = "krilijaBrightness", required = false) Integer krilijaBrightness) {
+
+        int brightness = (krilijaBrightness != null) ? krilijaBrightness : 150;
+        String path = "/krilija/on";
+        if (krilijaBrightness != null) {
+            path += "?brightness=" + krilijaBrightness
+        }
+
+        return executeCommand(path, "POST", "Krilija ne vkluchilis", "Ошибка старта. Мрия не отвечает.", ozvuchka);
+    }
+
+    @PostMapping("/krilijaOff")
+    public ResponseEntity<String> turnOffKrilija(
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka) {
+        return executeCommand("/krilija/off", "POST", "Krilija viklucheni", null, ozvuchka);
+    }
+
+    // --- fuzilash (Blick) ---
+    @PostMapping("/fuzilashOn")
+    public ResponseEntity<String> turnOnFuzilash(
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka,
+        @RequestParam(value = "chastota", required = false) Integer chastota,
+        @RequestParam(value = "interval", required = false) Integer interval) {
+
+        String path = "/fuzilash/on";
+        if (chastota != null && interval != null) {
+            path += "?chastota=" + chastota + "&interval=" + interval;
+        }
+
+        return executeCommand(path, "POST", "fuzilash ne vkluchilsia", "Ошибка старта. Мрия не отвечает.", ozvuchka);
+    }
+
+    @PostMapping("/fuzilashOff")
+    public ResponseEntity<String> turnOffFuzilash(
+        @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka) {
+        return executeCommand("/fuzilash/off", "POST", "Fuzilash otkluchen", null, ozvuchka);
+    }
+
     // --- Радио ---
     @PostMapping("/radioOn")
     public ResponseEntity<String> turnOnRadio(
