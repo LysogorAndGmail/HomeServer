@@ -46,7 +46,7 @@ public class MrijaControlController {
         int brightness = (krilijaBrightness != null) ? krilijaBrightness : 150;
         String path = "/krilija/on";
         if (krilijaBrightness != null) {
-            path += "?brightness=" + krilijaBrightness
+            path += "?brightness=" + krilijaBrightness;
         }
 
         return executeCommand(path, "POST", "Krilija ne vkluchilis", "Ошибка старта. Мрия не отвечает.", ozvuchka);
