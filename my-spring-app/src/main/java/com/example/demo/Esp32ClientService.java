@@ -9,17 +9,20 @@ import java.net.URL;
 @Service
 public class Esp32ClientService {
 
-    private final String espBaseUrl = "http://192.168.2.101";
+    private final Esp32Properties properties;
+
+    public Esp32ClientService(Esp32Properties properties) {
+        this.properties = properties;
+    }
 
     public String sendCommand(String path, String method) throws Exception {
-        String fullUrl = espBaseUrl + path;
-        System.out.println("Java: Отправка команды на ESP32 по адресу: " + fullUrl);
+        String fullUrl = properties.getBaseUrl() + path;
 
         URL url = new URL(fullUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod(method);
-        connection.setConnectTimeout(3000);
-        connection.setReadTimeout(3000);
+        connection.setConnectTimeout(properties.getConnectTimeout());
+        connection.setReadTimeout(properties.getReadTimeout());
 
         int responseCode = connection.getResponseCode();
         if (responseCode == 200) {
