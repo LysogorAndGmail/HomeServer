@@ -293,19 +293,19 @@ public ResponseEntity<String> turnOffMrijaRadio(
                 System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
 
                 if (ozvuchka != null && ozvuchka == 1) {
-                    voiceOutputService.speak("Cabin включено");
+                    voiceOutputService.speak("Cabina включенa");
                 }
 
                 return ResponseEntity.ok(response.toString());
             } else {
                 System.out.println("Java: ESP32 вернула код ошибки: " + responseCode);
-                voiceOutputService.speak("Ошибка vkluchenija Cabin.");
+                voiceOutputService.speak("Ошибка vkluchenija Cabini.");
                 return ResponseEntity.status(500).body("ESP32 вернула код: " + responseCode);
             }
         } catch (Exception e) {
             System.out.println("Java ОШИБКА: " + e.getMessage());
             e.printStackTrace();
-            voiceOutputService.speak("Сбой сети. Cabin не запущен.");
+            voiceOutputService.speak("Сбой сети. Cabina не запущенa.");
             return ResponseEntity.status(500).body("Ошибка связи: " + e.getMessage());
         }
     }
@@ -341,7 +341,7 @@ public ResponseEntity<String> turnOffMrijaRadio(
                 System.out.println("Java: Успешный ответ от ESP32: " + response.toString());
 
                 if (ozvuchka != null && ozvuchka == 1) {
-                    voiceOutputService.speak("Cabine выключено");
+                    voiceOutputService.speak("Cabina выключенa");
                 }
 
                 return ResponseEntity.ok(response.toString());
@@ -357,20 +357,20 @@ public ResponseEntity<String> turnOffMrijaRadio(
 
     @PostMapping("/mrija/dhoOn")
     public ResponseEntity<String> turnOnMrijaDHO(
-        @RequestParam(value = "Brightness", required = false) Integer Brightness,
-    @RequestParam(value = "Color", required = false) String Color,
-    @RequestParam(value = "Duration", required = false) Integer Duration,
+        @RequestParam(value = "dhoBrightness", required = false) Integer dhoBrightness,
+    @RequestParam(value = "dhoColor", required = false) String dhoColor,
+    @RequestParam(value = "dhoDuration", required = false) Integer dhoDuration,
     @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
     ) {
         // 1. Задаем базовые дефолты на стороне Java, если с фронта что-то пришло null
-        int brightness = (Brightness != null) ? Brightness : 150;
-        int duration = (Duration != null) ? Duration : 0;
+        int brightness = (dhoBrightness != null) ? dhoBrightness : 150;
+        int duration = (dhoDuration != null) ? dhoDuration : 0;
 
         // 2. Защита от решетки в цвете (#f11e3d или %23f11e3d)
         String cleanColor = "FFF59D"; // дефолт
-        if (Color != null && !Color.isEmpty()) {
+        if (dhoColor != null && !dhoColor.isEmpty()) {
             // Убираем решетку и пробелы, если фронт их прислал
-            Color = Color.replace("#", "").replace("%23", "").trim();
+            cleanColor = dhoColor.replace("#", "").replace("%23", "").trim();
         }
 
         // 3. Собираем чистый URL для ESP32
@@ -419,14 +419,14 @@ public ResponseEntity<String> turnOffMrijaRadio(
 
     @PostMapping("/mrija/dhoOff")
     public ResponseEntity<String> turnOffMrijaDHO(
-        @RequestParam(value = "Duration", required = false) Integer Duration,
+        @RequestParam(value = "dhoDuration", required = false) Integer dhoDuration,
     @RequestParam(value = "ozvuchka", required = false, defaultValue = "1") Integer ozvuchka
     ) {
         String espUrl = "http://192.168.2.101/dho/off";
 
-        if (Duration != null) {
-            espUrl += "?Duration=" + Duration;
-            System.out.println("Java: Получен параметр: " + Duration);
+        if (dhoDuration != null) {
+            espUrl += "?Duration=" + dhoDuration;
+            System.out.println("Java: Получен параметр: " +dhoDuration);
         }
         try {
             System.out.println("Java: Отправка команды OFF на ESP32...");
