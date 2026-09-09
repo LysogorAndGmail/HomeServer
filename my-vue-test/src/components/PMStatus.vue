@@ -7,7 +7,7 @@ let timer = null;
 
 const fetchStatus = async () => {
   try {
-    const res = await fetch('http://84.188.80.47:8080/api/system/pm2-status');
+    const res = await api.get('/api/system/pm2-status');
     if (res.ok) {
       pm2Apps.value = await res.json();
     }
