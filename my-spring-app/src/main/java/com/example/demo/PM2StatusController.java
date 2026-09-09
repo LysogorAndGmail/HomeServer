@@ -17,9 +17,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/system")
-public class PM2StatusController {
+@CrossOrigin(origins = "*", allowedHeaders = "*") // Разрешает кросс-доменные запросы
+public class Pm2StatusController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    // ... остальной код контроллера без изменений
 
     // DTO для удобной передачи на Vue-фронтенд
     public record Pm2ProcessDto(
