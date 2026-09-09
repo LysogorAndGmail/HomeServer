@@ -28,7 +28,12 @@ const routes = [
         path: 'projects', // URL: /projects
         name: 'Projects',
         component: Projects
-      }
+      },
+	  {
+	      path: 'pm-status', // URL: /projects
+	      name: 'PM Status',
+	      component: PMStatus
+	    }
     ]
   },
 
