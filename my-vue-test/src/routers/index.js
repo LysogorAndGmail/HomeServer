@@ -4,6 +4,7 @@ import AdminLayout from '@/components/AdminLayout.vue'
 import Dashboard from '@/components/Dashboard.vue' // 1. Импортируем новый Dashboard вместо Admin
 import Login from '@/components/Login.vue'
 import Projects from '@/components/Projects.vue'
+import PMStatus from '@/components/PMStatus.vue'
 
 const routes = [
   // 1. ОТКРЫТЫЕ МАРШРУТЫ
