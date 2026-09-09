@@ -9,7 +9,7 @@ const fetchStatus = async () => {
   try {
     const res = await api.get('/api/system/pm2-status');
     if (res.ok) {
-      pm2Apps.value = await res.json();
+      pm2Apps.value = await res.data;
     }
   } catch (err) {
     console.error('Ошибка загрузки PM2 статуса:', err);
