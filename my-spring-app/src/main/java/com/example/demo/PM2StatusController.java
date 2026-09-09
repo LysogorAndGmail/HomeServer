@@ -18,7 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/system")
 @CrossOrigin(origins = "*", allowedHeaders = "*") // Разрешает кросс-доменные запросы
-public class Pm2StatusController {
+public class PM2StatusController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     // ... остальной код контроллера без изменений
