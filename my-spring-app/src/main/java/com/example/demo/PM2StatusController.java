@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/system")
@@ -112,10 +113,10 @@ public class PM2StatusController {
     @PostMapping("/pm2-restart/{id}")
     public ResponseEntity<?> restartPm2Process(@PathVariable int id) {
         try {
-            // Запускаем процесс перезапуска асинхронно с задержкой в 500мс
+           
             CompletableFuture.runAsync(() -> {
                 try {
-                    Thread.sleep(500); // Даем время Spring успеть отправить HTTP-ответ
+                    Thread.sleep(500); 
                     ProcessBuilder processBuilder = new ProcessBuilder("/usr/local/bin/pm2", "restart", String.valueOf(id));
                     processBuilder.start();
                 } catch (Exception e) {
