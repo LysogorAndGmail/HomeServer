@@ -1,28 +1,6 @@
-<template>
-  <div class="pm2-dashboard">
-    <h2>Статус сервисов PM2</h2>
-    
-    <div class="services-grid">
-      <div v-for="app in pm2Apps" :key="app.id" class="service-card">
-        <div class="card-header">
-          <span class="app-name">{{ app.name }}</span>
-          <span :class="['status-badge', app.status]">{{ app.status }}</span>
-        </div>
-        
-        <div class="card-body">
-          <p><strong>ID:</strong> {{ app.id }}</p>
-          <p><strong>CPU:</strong> {{ app.cpu }}%</p>
-          <p><strong>RAM:</strong> {{ app.memory }}</p>
-          <p><strong>Рестарты:</strong> {{ app.restarts }}</p>
-          <p><strong>Uptime:</strong> {{ formatUptime(app.uptime) }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted } from 'vue'
+import api from '@/api'
 
 const pm2Apps = ref([]);
 let timer = null;
@@ -59,6 +37,29 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 </script>
+
+<template>
+  <div class="pm2-dashboard">
+    <h2>Статус сервисов PM2</h2>
+    
+    <div class="services-grid">
+      <div v-for="app in pm2Apps" :key="app.id" class="service-card">
+        <div class="card-header">
+          <span class="app-name">{{ app.name }}</span>
+          <span :class="['status-badge', app.status]">{{ app.status }}</span>
+        </div>
+        
+        <div class="card-body">
+          <p><strong>ID:</strong> {{ app.id }}</p>
+          <p><strong>CPU:</strong> {{ app.cpu }}%</p>
+          <p><strong>RAM:</strong> {{ app.memory }}</p>
+          <p><strong>Рестарты:</strong> {{ app.restarts }}</p>
+          <p><strong>Uptime:</strong> {{ formatUptime(app.uptime) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .services-grid { display: flex; gap: 16px; flex-wrap: wrap; }
