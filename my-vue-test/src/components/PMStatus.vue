@@ -25,13 +25,19 @@ const restartApp = async (id) => {
   restartingIds.value.add(id);
   try {
     await api.post(`/api/system/pm2-restart/${id}`);
-    // Сразу обновляем статус после перезапуска
-    await fetchStatus();
   } catch (err) {
-    console.error(`Ошибка при перезапуске процесса ${id}:`, err);
-    alert(`Не удалось перезапустить процесс ID: ${id}`);
+    // Если мы перезапускаем сам home-spring, сброс соединения — это нормальное поведение
+    if (err.code === 'ERR_NETWORK' || err.message.includes('Network Error')) {
+      console.log(`Процесс ${id} перезапускается (соединение сброшено)...`);
+    } else {
+      console.error(`Ошибка при перезапуске процесса ${id}:`, err);
+    }
   } finally {
-    restartingIds.value.delete(id);
+    // Ждем 3 секунды, пока Spring поднялся, и обновляем статус
+    setTimeout(() => {
+      fetchStatus();
+      restartingIds.value.delete(id);
+    }, 3000);
   }
 };
 
