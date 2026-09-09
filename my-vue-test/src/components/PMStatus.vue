@@ -8,9 +8,8 @@ let timer = null;
 const fetchStatus = async () => {
   try {
     const res = await api.get('/api/system/pm2-status');
-    if (res.ok) {
-      pm2Apps.value = await res.data;
-    }
+    // В Axios статус 200 проверяется автоматически, а данные сразу в res.data
+    pm2Apps.value = res.data;
   } catch (err) {
     console.error('Ошибка загрузки PM2 статуса:', err);
   }
