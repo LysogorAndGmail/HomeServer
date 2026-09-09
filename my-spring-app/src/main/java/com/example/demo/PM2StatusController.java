@@ -112,17 +112,26 @@ public class PM2StatusController {
     @PostMapping("/pm2-restart/{id}")
     public ResponseEntity<?> restartPm2Process(@PathVariable int id) {
         try {
-            // Выполняем команду pm2 restart по ID процесса
-            ProcessBuilder processBuilder = new ProcessBuilder("pm2", "restart", String.valueOf(id));
+            // Используем точный путь к pm2
+            ProcessBuilder processBuilder = new ProcessBuilder("/usr/local/bin/pm2", "restart", String.valueOf(id));
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
+            // Считываем вывод команды pm2
+            String output = new String(process.getInputStream().readAllBytes());
             int exitCode = process.waitFor();
+
             if (exitCode == 0) {
-                return ResponseEntity.ok(Map.of("message", "Process " + id + " restarted successfully"));
+                return ResponseEntity.ok(Map.of(
+                    "message", "Process " + id + " restarted successfully",
+                    "output", output
+                ));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("error", "Failed to restart process " + id));
+                        .body(Map.of(
+                            "error", "PM2 exit code " + exitCode,
+                            "details", output
+                        ));
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
