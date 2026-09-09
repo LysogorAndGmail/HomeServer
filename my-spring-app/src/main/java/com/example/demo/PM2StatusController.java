@@ -106,4 +106,25 @@ public class PM2StatusController {
                     .body(Map.of("error", "Failed to retrieve PM2 status: " + e.getMessage()));
         }
     }
+    
+    @PostMapping("/pm2-restart/{id}")
+    public ResponseEntity<?> restartPm2Process(@PathVariable int id) {
+        try {
+            // Выполняем команду pm2 restart по ID процесса
+            ProcessBuilder processBuilder = new ProcessBuilder("pm2", "restart", String.valueOf(id));
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                return ResponseEntity.ok(Map.of("message", "Process " + id + " restarted successfully"));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "Failed to restart process " + id));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 }

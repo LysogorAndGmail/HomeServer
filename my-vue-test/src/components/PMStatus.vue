@@ -3,7 +3,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import api from '@/api'
 
 const pm2Apps = ref([]);
-const isLoading = ref(true); // Флаг состояния загрузки
+const isLoading = ref(true);
+const restartingIds = ref(new Set()); // Набор ID процессов, которые сейчас перезапускаются
 let timer = null;
 
 const fetchStatus = async () => {
@@ -13,8 +14,24 @@ const fetchStatus = async () => {
   } catch (err) {
     console.error('Ошибка загрузки PM2 статуса:', err);
   } finally {
-    // Выключаем loader после завершения первого запроса
     isLoading.value = false;
+  }
+};
+
+// Функция перезапуска процесса по ID
+const restartApp = async (id) => {
+  if (restartingIds.value.has(id)) return;
+
+  restartingIds.value.add(id);
+  try {
+    await api.post(`/api/system/pm2-restart/${id}`);
+    // Сразу обновляем статус после перезапуска
+    await fetchStatus();
+  } catch (err) {
+    console.error(`Ошибка при перезапуске процесса ${id}:`, err);
+    alert(`Не удалось перезапустить процесс ID: ${id}`);
+  } finally {
+    restartingIds.value.delete(id);
   }
 };
 
@@ -43,13 +60,11 @@ onUnmounted(() => {
   <div class="pm2-dashboard">
     <h2>Статус сервисов PM2</h2>
     
-    <!-- Индикатор загрузки (показывается пока isLoading === true) -->
     <div v-if="isLoading" class="loader-container">
       <div class="spinner"></div>
       <p>Загрузка статуса процессов...</p>
     </div>
 
-    <!-- Список карточек процессов (показывается после загрузки) -->
     <div v-else-if="pm2Apps.length > 0" class="services-grid">
       <div v-for="app in pm2Apps" :key="app.id" class="service-card">
         <div class="card-header">
@@ -64,10 +79,20 @@ onUnmounted(() => {
           <p><strong>Рестарты:</strong> {{ app.restarts }}</p>
           <p><strong>Uptime:</strong> {{ formatUptime(app.uptime) }}</p>
         </div>
+
+        <div class="card-footer">
+          <button 
+            class="btn-restart" 
+            :disabled="restartingIds.has(app.id)"
+            @click="restartApp(app.id)"
+          >
+            <span v-if="restartingIds.has(app.id)">Перезапуск...</span>
+            <span v-else>↻ Перезапустить</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Запасной вариант, если список пуст -->
     <div v-else class="empty-state">
       Процессы PM2 не найдены или бэкенд недоступен.
     </div>
@@ -75,47 +100,38 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.pm2-dashboard {
-  padding: 16px;
-}
-
-/* Стили для лоадера и спиннера */
-.loader-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  color: #666;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 12px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Стили карточек */
 .services-grid { display: flex; gap: 16px; flex-wrap: wrap; }
-.service-card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; width: 220px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.service-card { 
+  border: 1px solid #ddd; 
+  border-radius: 8px; 
+  padding: 16px; 
+  width: 220px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: space-between;
+}
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .app-name { font-weight: bold; }
 .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
 .status-badge.online { background-color: #d4edda; color: #155724; }
 .status-badge.stopped { background-color: #f8d7da; color: #721c24; }
 
-.empty-state {
-  color: #888;
-  font-style: italic;
-  padding: 20px 0;
+.card-footer { margin-top: 16px; }
+.btn-restart {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
+.btn-restart:hover:not(:disabled) { background-color: #0056b3; }
+.btn-restart:disabled { background-color: #a0c4ff; cursor: not-allowed; }
+
+.loader-container { display: flex; flex-direction: column; align-items: center; padding: 40px; color: #666; }
+.spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
