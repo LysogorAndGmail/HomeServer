@@ -12,17 +12,17 @@ public class VoiceOutputServiceEST {
         }
 
         String[] command = {
-            "/bin/sh", "-c", 
-            "espeak-ng -v ru -s 130 -p 40 \"" + text + "\" --stdout | aplay -D plughw:0,0"
+            "/bin/sh", "-c",
+            "espeak-ng -v ru -s 130 -p 40 -a 200 \"" + text + "\" --stdout | aplay -D plughw:1,0"
         };
 
         ProcessBuilder pb = new ProcessBuilder(command);
         try {
-            pb.inheritIO(); // <--- ВОТ ЭТА СТРОЧКА! Она перенаправит весь вывод и ошибки в консоль джавы
+            pb.inheritIO();
             Process process = pb.start();
-            process.waitFor(); 
+            process.waitFor();
         } catch (IOException | InterruptedException e) {
-            System.err.println("Ошибка голосового вывода: " + e.getMessage());
+            System.err.println("Oshibka golosovogo vyvoda: " + e.getMessage());
             Thread.currentThread().interrupt();
         }
     }
