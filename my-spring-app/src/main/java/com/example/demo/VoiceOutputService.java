@@ -22,19 +22,21 @@ public class VoiceOutputService {
         try {
             // Piper генерирует raw audio
             ProcessBuilder piperBuilder = new ProcessBuilder(
-        		PIPER_PATH,
-        		"--model",
-        		MODEL_PATH,
-        		"--length_scale",
-        		"0.8",
-        		"--output-raw"
+                PIPER_PATH,
+                "--model",
+                MODEL_PATH,
+                "--length_scale",
+                "0.8",
+                "--output-raw"
             );
 
             piperProcess = piperBuilder.start();
 
-            // aplay воспроизводит поток
+            // aplay воспроизводит поток на целевую карту plughw:1,0
             ProcessBuilder aplayBuilder = new ProcessBuilder(
                     "aplay",
+                    "-D",
+                    "plughw:1,0",
                     "-r",
                     "22050",
                     "-f",
