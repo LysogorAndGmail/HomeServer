@@ -92,3 +92,8 @@ fuser -v /dev/snd/*
 
 ////////////////////// stream ////////////
 pm2 start /home/lysogorand/my-spring-app/start-stream.sh --name "audio-stream"
+
+
+root@lysogorand:/home/lysogorand/my-api# pm2 start server.js --name "my-api"
+
+pm2 start start-stream.sh --name "audio-stream"
